@@ -1,4 +1,4 @@
-const CACHE_NAME = "family-game-night-dashboard-v2";
+const CACHE_NAME = "family-game-night-dashboard-v3";
 
 const APP_ASSETS = [
     "./",
@@ -7,7 +7,8 @@ const APP_ASSETS = [
     "./app.js",
     "./manifest.webmanifest",
     "./icons/icon-192.png",
-    "./icons/icon-512.png"
+    "./icons/icon-512.png",
+    "./icons/apple-touch-icon.png"
 ];
 
 self.addEventListener("install", function (event) {
