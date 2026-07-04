@@ -1,0 +1,288 @@
+:root {
+    --page-bg: #4d5258;
+    --card-bg: #ffffff;
+    --text-main: #1f2933;
+    --text-muted: #c8ced6;
+    --border-soft: #d8d3ca;
+    --primary: #263238;
+    --primary-hover: #1b252b;
+    --danger: #b42318;
+    --danger-hover: #8f1d14;
+    --title-text: #ffffff;
+    --text-subtle: #5f6b76;
+}
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 16px;
+    background-color: var(--page-bg);
+    color: var(--text-main);
+    line-height: 1.5;
+}
+
+@media (min-width: 700px) {
+    body {
+        padding: 24px;
+    }
+}
+
+main {
+    max-width: 1000px;
+    margin: 0 auto;
+}
+
+header {
+    margin-bottom: 24px;
+    text-align: center;
+}
+
+
+header h1 {
+    color: var(--title-text);
+}
+
+
+header p {
+    color: var(--text-muted);
+}
+
+h1,
+h2,
+p {
+    margin-top: 0;
+}
+
+section {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-soft);
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 16px;
+}
+
+.log-section h2 {
+    text-align: center;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+label {
+    font-weight: bold;
+    font-size: 1rem;
+}
+
+input,
+select {
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    width: 100%;
+}
+
+button {
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background-color: var(--primary);
+    color: white;
+}
+
+button:hover {
+    background-color: var(--primary-hover);
+}
+
+input,
+select,
+button {
+    padding: 12px;
+    font: inherit;
+}
+
+.stat-card,
+.game-result {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    padding: 12px;
+}
+
+.game-result {
+    margin-bottom: 12px;
+}
+
+.game-result h3 {
+    margin-top: 0;
+    margin-bottom: 8px;
+}
+
+.game-result p {
+    margin: 4px 0;
+}
+
+.stats-grid {
+    display: grid;
+    gap: 12px;
+}
+
+
+.stat-card h3 {
+    margin: 0 0 8px;
+    font-size: 0.95rem;
+}
+
+.stat-card p {
+    margin: 0;
+    font-size: 1.2rem;
+    font-weight: bold;
+}
+
+.wins-by-player {
+    margin-top: 16px;
+}
+
+.wins-by-player h3 {
+    margin-bottom: 8px;
+}
+
+.wins-by-player p {
+    margin: 4px 0;
+}
+
+@media (min-width: 700px) {
+    .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+
+@media (min-width: 900px) {
+    main {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 16px;
+        align-items: start;
+    }
+
+    section {
+        margin-bottom: 0;
+    }
+
+    .log-section {
+        grid-column: 1 / -1;
+    }
+}
+
+.game-result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+}
+
+.game-note {
+    margin-top: 0.75rem;
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.game-result-header h3 {
+    margin: 0;
+}
+
+.game-result-details p {
+    margin: 4px 0;
+}
+
+.delete-button {
+    background-color: var(--danger);
+    color: white;
+    padding: 8px 10px;
+    font-size: 0.9rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+.delete-button:hover {
+    background-color: var(--danger-hover);
+}
+
+.data-tools-section {
+    grid-column: 1 / -1;
+}
+
+.data-tools {
+    display: block;
+}
+
+.data-tools summary {
+    cursor: pointer;
+    font-weight: bold;
+    color: var(--text-main);
+    list-style: none;
+}
+
+.data-tools summary::-webkit-details-marker {
+    display: none;
+}
+
+.data-tools summary::after {
+    content: "Show";
+    float: right;
+    font-size: 0.85rem;
+    font-weight: normal;
+    color: var(--text-subtle);
+}
+
+.data-tools[open] summary::after {
+    content: "Hide";
+}
+
+.data-tools-content {
+    margin-top: 12px;
+
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.data-tools label {
+    font-weight: bold;
+}
+
+.data-tools input[type="file"] {
+    padding: 12px;
+    border: 1px dashed var(--border-soft);
+    border-radius: 8px;
+    background-color: var(--card-bg);
+    font: inherit;
+}
+
+.data-tools button {
+    align-self: flex-start;
+    background-color: var(--primary);
+    color: white;
+    font-weight: bold;
+}
+
+.data-tools button:hover {
+    background-color: var(--primary-hover);
+}
+
+#reset-data-button {
+    background-color: var(--danger);
+    color: white;
+}
+
+#reset-data-button:hover {
+    background-color: var(--danger-hover);
+}

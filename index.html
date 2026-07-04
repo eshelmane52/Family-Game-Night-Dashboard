@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eshelman Game Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="app.js" defer></script>
+</head>
+
+<body>
+    <header>
+        <h1>Eshelman Game Night Scorecard</h1>
+        <p>Track Winners of the games we play. Romy Certified. </p>
+    </header>
+
+    <main>
+        <section class="entry-section">
+            <h2>Add Game Result</h2>
+            <p>Track the Game Result here you Clown </p>
+
+            <form id="game-form">
+                <label for="game-date">Date</label>
+                <input type="date" id="game-date" name="gameDate" required />
+
+                <label for="game-name">Game</label>
+                <select id="game-name" name="gameName" required></select>
+
+                <label for="winner-name">Winner</label>
+                <select id="winner-name" name="winnerName" required></select>
+
+                <label for="game-note">Note:</label>
+                <input type="text" id="game-note" name="gameNote" />
+
+                <button type="submit">Add Result</button>
+            </form>
+        </section>
+
+        <section class="stats-section">
+            <h2>Stats</h2>
+
+            <div id="stats">
+                <p>Total games: 0</p>
+                <p>Most recent winner: None yet</p>
+                <p>Most played game: None yet</p>
+            </div>
+        </section>
+
+
+        <section class="log-section">
+
+            <h2>Game Log</h2>
+            <div id="game-log">
+
+            </div>
+        </section>
+
+        <section class="data-tools-section">
+            <details class="data-tools">
+                <summary>Data Tools</summary>
+
+                <div class="data-tools-content">
+                    <button id="export-json-button" type="button">
+                        Export JSON Backup
+                    </button>
+
+                    <label for="import-json-input">
+                        Import JSON Backup
+                    </label>
+
+                    <input id="import-json-input" type="file" accept="application/json,.json" />
+
+                    <button id="import-json-button" type="button">
+                        Import Selected Backup
+                    </button>
+
+                    <button id="reset-data-button" type="button">
+                        Reset All Data
+                    </button>
+                </div>
+            </details>
+        </section>
+    </main>
+</body>
+
+</html>
