@@ -1,4 +1,3 @@
-
 ////////////////////////////// 1. Page Elements //////////////////////////////
 const gameForm = document.querySelector("#game-form");
 const gameLog = document.querySelector("#game-log");
@@ -14,6 +13,10 @@ const resetDataButton = document.querySelector("#reset-data-button");
 /////////////////////////////// 2. App data //////////////////////////////////
 const STORAGE_KEY = "gameResults";
 const DATA_EXPORT_VERSION = 1;
+
+const SUPABASE_REST_URL = "https://hjftnsaabyntyliwgjie.supabase.co/rest/v1";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_WkyBjvODmxrICShiF_09qw_VNEg-ghY";
+const SUPABASE_GAME_RESULTS_TABLE_URL = `${SUPABASE_REST_URL}/game_results`;
 
 const DEFAULT_GAMES = [
     "Hearts",
@@ -262,7 +265,7 @@ function createGameResult(date, game, winner, note) {
     };
 }
 
-function normalizeGameResult(result, index) {
+function normalizeGameResult(result, index = 0) {
     return {
         id: result.id || `game-migrated-${Date.now()}-${index}`,
         date: result.date,
@@ -291,6 +294,141 @@ function loadGameResults() {
     } catch (error) {
         console.error("Could not load saved game results:", error);
         return [];
+    }
+}
+
+function getSupabaseHeaders(extraHeaders = {}) {
+    return {
+        apikey: SUPABASE_PUBLISHABLE_KEY,
+        Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+        ...extraHeaders
+    };
+}
+
+function mapSupabaseRowToGameResult(row) {
+    return {
+        id: row.id,
+        date: row.played_date,
+        game: row.game,
+        winner: row.winner,
+        note: row.note || "",
+        createdAt: row.created_at,
+        createdBy: row.created_by || ""
+    };
+}
+
+function mapGameResultToSupabaseRow(result) {
+    return {
+        game: result.game,
+        winner: result.winner,
+        played_date: result.date,
+        note: result.note || "",
+        created_by: result.createdBy || ""
+    };
+}
+
+async function getSupabaseErrorMessage(response) {
+    try {
+        const errorData = await response.json();
+        return `${response.status} ${response.statusText}: ${JSON.stringify(errorData)}`;
+    } catch (error) {
+        return `${response.status} ${response.statusText}`;
+    }
+}
+
+async function fetchSharedGameResults() {
+    const selectedColumns = "id,game,winner,played_date,note,created_at,created_by";
+    const url = `${SUPABASE_GAME_RESULTS_TABLE_URL}?select=${selectedColumns}&order=created_at.asc`;
+
+    const response = await fetch(url, {
+        headers: getSupabaseHeaders()
+    });
+
+    if (!response.ok) {
+        throw new Error(await getSupabaseErrorMessage(response));
+    }
+
+    const rows = await response.json();
+    return rows.map(mapSupabaseRowToGameResult);
+}
+
+async function loadSharedGameResults() {
+    try {
+        const sharedGameResults = await fetchSharedGameResults();
+
+        replaceGameResults(sharedGameResults);
+        saveGameResults();
+        renderApp();
+    } catch (error) {
+        console.error("Could not load shared game results:", error);
+        renderApp();
+        alert("Shared game results could not be loaded. Showing this device's last saved copy if one exists.");
+    }
+}
+
+async function insertSharedGameResult(gameResult) {
+    const response = await fetch(SUPABASE_GAME_RESULTS_TABLE_URL, {
+        method: "POST",
+        headers: getSupabaseHeaders({
+            "Content-Type": "application/json",
+            Prefer: "return=minimal"
+        }),
+        body: JSON.stringify(mapGameResultToSupabaseRow(gameResult))
+    });
+
+    if (!response.ok) {
+        throw new Error(await getSupabaseErrorMessage(response));
+    }
+}
+
+async function deleteSharedGameResultById(idToDelete) {
+    const encodedId = encodeURIComponent(idToDelete);
+    const response = await fetch(`${SUPABASE_GAME_RESULTS_TABLE_URL}?id=eq.${encodedId}`, {
+        method: "DELETE",
+        headers: getSupabaseHeaders({
+            Prefer: "return=minimal"
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error(await getSupabaseErrorMessage(response));
+    }
+}
+
+async function deleteAllSharedGameResults() {
+    const response = await fetch(`${SUPABASE_GAME_RESULTS_TABLE_URL}?id=not.is.null`, {
+        method: "DELETE",
+        headers: getSupabaseHeaders({
+            Prefer: "return=minimal"
+        })
+    });
+
+    if (!response.ok) {
+        throw new Error(await getSupabaseErrorMessage(response));
+    }
+}
+
+async function replaceSharedGameResults(importedResults) {
+    const normalizedResults = importedResults.map(normalizeGameResult);
+    const rows = normalizedResults.map(mapGameResultToSupabaseRow);
+
+    await deleteAllSharedGameResults();
+
+    if (rows.length === 0) {
+        return;
+    }
+
+    const response = await fetch(SUPABASE_GAME_RESULTS_TABLE_URL, {
+        method: "POST",
+        headers: getSupabaseHeaders({
+            "Content-Type": "application/json",
+            Prefer: "return=minimal"
+        }),
+        body: JSON.stringify(rows)
+    });
+
+    if (!response.ok) {
+        throw new Error(await getSupabaseErrorMessage(response));
     }
 }
 
@@ -328,7 +466,7 @@ function handleImportButtonClick() {
 
     const reader = new FileReader();
 
-    reader.addEventListener("load", () => {
+    reader.addEventListener("load", async () => {
         let backupData;
 
         try {
@@ -345,20 +483,24 @@ function handleImportButtonClick() {
         }
 
         const shouldImport = confirm(
-            "Importing this backup will replace your current game results. Continue?"
+            "Importing this backup will replace the shared game results for everyone. Continue?"
         );
 
         if (!shouldImport) {
             return;
         }
 
-        replaceGameResults(backupData.results);
-        saveGameResults();
-        renderApp();
+        try {
+            await replaceSharedGameResults(backupData.results);
+            await loadSharedGameResults();
 
-        importJsonInput.value = "";
+            importJsonInput.value = "";
 
-        alert("Backup imported successfully.");
+            alert("Backup imported successfully into the shared database.");
+        } catch (error) {
+            console.error("Import save error:", error);
+            alert("That backup could not be imported into the shared database.");
+        }
     });
 
     reader.addEventListener("error", () => {
@@ -393,20 +535,26 @@ function resetGameResults() {
     gameResults.splice(0, gameResults.length);
 }
 
-function handleResetDataButtonClick() {
+async function handleResetDataButtonClick() {
     const confirmedReset = confirm(
-        "This will permanently delete all saved game results from this browser. Export a backup first if you want to keep them. Continue?"
+        "This will permanently delete all shared game results for everyone. Export a backup first if you want to keep them. Continue?"
     );
 
     if (!confirmedReset) {
         return;
     }
 
-    resetGameResults();
-    saveGameResults();
-    renderApp();
+    try {
+        await deleteAllSharedGameResults();
+        resetGameResults();
+        saveGameResults();
+        renderApp();
 
-    alert("All game results have been reset.");
+        alert("All shared game results have been reset.");
+    } catch (error) {
+        console.error("Reset shared data error:", error);
+        alert("Shared game results could not be reset.");
+    }
 }
 
 ////////////////////////// 4. Render Functions ///////////////////////////////
@@ -471,10 +619,11 @@ function renderStats() {
 renderDropdownOptions();
 renderApp();
 setDefaultGameDate();
+loadSharedGameResults();
 
 
 //6. Event Listeners
-gameForm.addEventListener("submit", function (event) {
+gameForm.addEventListener("submit", async function (event) {
     event.preventDefault();
 
     const formValues = getGameResultFormData();
@@ -491,34 +640,37 @@ gameForm.addEventListener("submit", function (event) {
         formValues.gameNote
     );
 
-    addGameResult(gameResult);
-    saveGameResults();
-    renderApp();
-    gameForm.reset();
-    setDefaultGameDate();
+    try {
+        await insertSharedGameResult(gameResult);
+        await loadSharedGameResults();
+        gameForm.reset();
+        setDefaultGameDate();
+    } catch (error) {
+        console.error("Could not add shared game result:", error);
+        alert("Game result could not be added to the shared database.");
+    }
 });
 
-gameLog.addEventListener("click", function (event) {
+gameLog.addEventListener("click", async function (event) {
     if (!event.target.classList.contains("delete-button")) {
         return;
     }
 
     const idToDelete = event.target.dataset.id;
 
-    const confirmedDelete = confirm("ARE YOU FOR REAL GOING TO DELETE THIS?");
+    const confirmedDelete = confirm("ARE YOU FOR REAL GOING TO DELETE THIS FROM THE SHARED DATABASE?");
 
     if (!confirmedDelete) {
         return;
     }
 
-    const deleted = deleteGameResultById(idToDelete);
-
-    if (!deleted) {
-        return;
+    try {
+        await deleteSharedGameResultById(idToDelete);
+        await loadSharedGameResults();
+    } catch (error) {
+        console.error("Could not delete shared game result:", error);
+        alert("Game result could not be deleted from the shared database.");
     }
-
-    saveGameResults();
-    renderApp();
 });
 
 exportJsonButton.addEventListener("click", exportGameResultsBackup);
