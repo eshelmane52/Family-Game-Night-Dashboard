@@ -1,86 +1,57 @@
 # Family Game Night Dashboard
 
-A simple family scoreboard app for logging game night results, winners, notes, and basic stats.
+A simple shared family scoreboard app for logging game night results, winners, notes, and basic stats.
+
+The app is built as a small static HTML/CSS/JavaScript project and is hosted through GitHub Pages. It is also installable as a Progressive Web App, so family members can open it from their phone or tablet home screen.
 
 ## Current status
 
-This is the local frontend MVP prepared for Phase 3A hosting.
+The project is currently a working hosted PWA with shared backend sync.
 
-The app is intentionally static and simple:
+Completed:
 
-- `index.html`
-- `styles.css`
-- `app.js`
-- Browser `localStorage`
+- Static frontend app
+- Game result entry form
+- Game dropdown
+- Winner dropdown
+- Game log
+- Reverse chronological display, newest results first
+- Delete result
+- Basic stats
+- Wins by player
 - JSON export/import backup tools
+- Browser local cache fallback
+- GitHub Pages hosting
+- PWA install support
+- Offline app shell support
+- Supabase shared backend persistence
+- Cross-device shared sync for add/delete/reset/import behavior
 
-## Hosting target
+## Tech stack
 
-This project can be hosted on any static hosting provider, including:
-
+- HTML
+- CSS
+- JavaScript
 - GitHub Pages
-- Netlify
-- Vercel
-- Cloudflare Pages
+- Progressive Web App files
+  - `manifest.webmanifest`
+  - `service-worker.js`
+  - app icons in `/icons`
+- Supabase REST API backend
+- Browser `localStorage` as a local last-saved cache/fallback
 
-For the first online version, GitHub Pages is recommended because this app does not need a build process yet.
+## Project structure
 
-## Important data note
-
-Moving the app from a local file to a hosted URL creates a new browser storage location.
-
-Before switching to the hosted version:
-
-1. Open the current local app.
-2. Use **Data Tools → Export JSON Backup**.
-3. Open the hosted app URL.
-4. Use **Data Tools → Import JSON Backup**.
-
-This restores your existing local data into the hosted version.
-
-## GitHub Pages deployment steps
-
-1. Create a new GitHub repository.
-2. Upload these files to the repository root:
-   - `index.html`
-   - `styles.css`
-   - `app.js`
-   - `.nojekyll`
-   - `README.md`
-3. Commit the files to the `main` branch.
-4. Open the repository on GitHub.
-5. Go to **Settings → Pages**.
-6. Under **Build and deployment**, choose **Deploy from a branch**.
-7. Set the branch to `main` and the folder to `/root`.
-8. Save.
-9. Wait for GitHub Pages to publish the site.
-10. Open the published URL and run the smoke test below.
-
-## Hosted smoke test
-
-After deployment:
-
-- Page loads without errors.
-- Date defaults to today.
-- Game dropdown renders.
-- Winner dropdown renders.
-- Add a test result.
-- Refresh the page and confirm the result persists.
-- Delete the test result.
-- Export a backup.
-- Import a backup.
-- Reset all data only if intentionally testing recovery.
-
-## Phase 3A result
-
-When the hosted URL works, Phase 3A is complete.
-
-This does **not** complete shared sync. It only makes the current frontend reachable from a URL.
-
-## Next phase
-
-Recommended next step after Phase 3A:
-
-- Phase 3B: PWA installability
-- Phase 3C: shared backend/data architecture
-- Phase 3D: sync implementation
+```txt
+Family-Game-Night-Dashboard/
+├─ index.html
+├─ styles.css
+├─ app.js
+├─ manifest.webmanifest
+├─ service-worker.js
+├─ README.md
+└─ icons/
+   ├─ icon-192.png
+   ├─ icon-512.png
+   ├─ apple-touch-icon.png
+   └─ .gitkeep
