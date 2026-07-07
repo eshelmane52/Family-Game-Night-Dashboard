@@ -9,6 +9,9 @@ const exportJsonButton = document.querySelector("#export-json-button");
 const importJsonInput = document.querySelector("#import-json-input");
 const importJsonButton = document.querySelector("#import-json-button");
 const resetDataButton = document.querySelector("#reset-data-button");
+const customGameWrapper = document.querySelector("#custom-game-wrapper");
+const customGameNameInput = document.querySelector("#custom-game-name");
+const CUSTOM_GAME_VALUE = "__custom_game__";
 
 /////////////////////////////// 2. App data //////////////////////////////////
 const STORAGE_KEY = "gameResults";
@@ -19,17 +22,18 @@ const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_WkyBjvODmxrICShiF_09qw_VNEg-ghY
 const SUPABASE_GAME_RESULTS_TABLE_URL = `${SUPABASE_REST_URL}/game_results`;
 
 const DEFAULT_GAMES = [
-    "Hearts",
+    "Contract Whist (Heck No)",
+    "Crazy Eights",
     "Farkle",
     "German Whist",
-    "Contract Whist (Heck No)",
+    "Go Fish",
+    "Hearts",
+    "Jik Jak",
     "Monopoly Board Game",
     "Monopoly Card Game",
-    "Sorry!",
     "Old Maid",
-    "Jik Jak",
-    "Crazy Eights",
-    "Go Fish"
+    "Scattergories",
+    "Sorry!"
 ];
 
 const DEFAULT_PLAYERS = [
@@ -41,6 +45,29 @@ const DEFAULT_PLAYERS = [
 ];
 
 //////////////////////////////////// 3. Helpers ///////////////////////////////
+
+function getResolvedGameName(formValues) {
+    if (formValues.gameName === CUSTOM_GAME_VALUE) {
+        return formValues.customGameName;
+    }
+
+    return formValues.gameName;
+}
+
+function handleGameSelectionChange() {
+    if (!gameNameSelect || !customGameWrapper || !customGameNameInput) {
+        return;
+    }
+
+    const isCustomGame = gameNameSelect.value === CUSTOM_GAME_VALUE;
+
+    customGameWrapper.classList.toggle("hidden", !isCustomGame);
+    customGameNameInput.required = isCustomGame;
+
+    if (!isCustomGame) {
+        customGameNameInput.value = "";
+    }
+}
 
 function buildGameResultsBackup() {
     return {
@@ -86,6 +113,7 @@ function getGameResultFormData() {
     return {
         gameDate: formData.get("gameDate"),
         gameName: formData.get("gameName"),
+        customGameName: String(formData.get("customGameName") || "").trim(),
         winnerName: formData.get("winnerName"),
         gameNote: formData.get("gameNote").trim()
     };
@@ -131,6 +159,11 @@ function renderGameOptions() {
     }
 
     gameNameSelect.innerHTML = buildSelectOptionsHTML(DEFAULT_GAMES, "Select Game");
+
+    const customOption = document.createElement("option");
+    customOption.value = CUSTOM_GAME_VALUE;
+    customOption.textContent = "Other / Custom Game";
+    gameNameSelect.appendChild(customOption);
 }
 
 function renderWinnerOptions() {
@@ -560,9 +593,11 @@ async function handleResetDataButtonClick() {
 ////////////////////////// 4. Render Functions ///////////////////////////////
 
 function isValidGameResultFormData(formValues) {
+    const resolvedGameName = getResolvedGameName(formValues);
+
     return (
         formValues.gameDate &&
-        formValues.gameName &&
+        resolvedGameName &&
         formValues.winnerName
     );
 }
@@ -617,6 +652,13 @@ function renderStats() {
 
 //5. Initial Setup
 renderDropdownOptions();
+
+if (gameNameSelect) {
+    gameNameSelect.value = "";
+}
+
+handleGameSelectionChange();
+
 renderApp();
 setDefaultGameDate();
 loadSharedGameResults();
@@ -633,9 +675,11 @@ gameForm.addEventListener("submit", async function (event) {
         return;
     }
 
+    const resolvedGameName = getResolvedGameName(formValues);
+
     const gameResult = createGameResult(
         formValues.gameDate,
-        formValues.gameName,
+        resolvedGameName,
         formValues.winnerName,
         formValues.gameNote
     );
@@ -643,7 +687,14 @@ gameForm.addEventListener("submit", async function (event) {
     try {
         await insertSharedGameResult(gameResult);
         await loadSharedGameResults();
+
         gameForm.reset();
+
+        if (gameNameSelect) {
+            gameNameSelect.value = "";
+        }
+
+        handleGameSelectionChange();
         setDefaultGameDate();
     } catch (error) {
         console.error("Could not add shared game result:", error);
@@ -687,4 +738,8 @@ if ("serviceWorker" in navigator) {
             console.error("Service worker registration failed:", error);
         });
     });
+}
+
+if (gameNameSelect) {
+    gameNameSelect.addEventListener("change", handleGameSelectionChange);
 }

@@ -286,3 +286,11 @@ button {
 #reset-data-button:hover {
     background-color: var(--danger-hover);
 }
+
+.hidden {
+    display: none;
+}
+
+.custom-game-wrapper {
+    margin-top: 0.75rem;
+}
