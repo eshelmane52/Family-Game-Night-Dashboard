@@ -65,9 +65,39 @@ section {
     margin-bottom: 16px;
 }
 
-.log-section h2 {
+.log-section h2,
+.game-log-details summary {
     text-align: center;
 }
+
+.game-log-details summary {
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 1.2rem;
+    color: var(--text-main);
+    list-style: none;
+}
+
+.game-log-details summary::-webkit-details-marker {
+    display: none;
+}
+
+.game-log-details summary::after {
+    content: "Hide";
+    float: right;
+    font-size: 0.85rem;
+    font-weight: normal;
+    color: var(--text-subtle);
+}
+
+.game-log-details:not([open]) summary::after {
+    content: "Show";
+}
+
+#game-log {
+    margin-top: 12px;
+}
+
 
 form {
     display: flex;
@@ -189,8 +219,7 @@ button {
 
 .game-note {
     margin-top: 0.75rem;
-    color: var(--text-muted);
-    font-style: italic;
+    color: var(--text-main);
 }
 
 .game-result-header h3 {

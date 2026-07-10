@@ -32,6 +32,7 @@ const DEFAULT_GAMES = [
     "Monopoly Board Game",
     "Monopoly Card Game",
     "Old Maid",
+    "Pickleball",
     "Scattergories",
     "Sorry!"
 ];
@@ -213,7 +214,7 @@ function buildGameResultHTML(result) {
             <div class="game-result-details">
                 <p><strong>Date:</strong> ${escapeHTML(result.date)}</p>
                 <p><strong>Winner:</strong> ${escapeHTML(result.winner)}</p>
-                ${result.note ? `<p class="game-note"><strong>Note:</strong> ${escapeHTML(result.note)}</p>` : ""}
+                ${result.note ? `<p class="game-note"><strong>Note:</strong> <i>${escapeHTML(result.note)}</i></p>` : ""}
             </div>
         </article>
     `;
