@@ -323,3 +323,43 @@ button {
 .custom-game-wrapper {
     margin-top: 0.75rem;
 }
+
+.top-nav {
+    max-width: 1000px;
+    margin: 0 auto 16px;
+    display: flex;
+    justify-content: center;
+    gap: 6px;
+}
+
+.top-nav a {
+    min-height: 44px;
+    padding: 10px 16px;
+    border: 1px solid var(--text-muted);
+    border-radius: 999px;
+    color: var(--title-text);
+    text-decoration: none;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+}
+
+.top-nav a:hover,
+.top-nav a:focus-visible {
+    background: rgba(255, 255, 255, 0.12);
+}
+
+.top-nav a[aria-current="page"] {
+    background: var(--card-bg);
+    color: var(--primary);
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+summary:focus-visible {
+    outline: 3px solid #f4b400;
+    outline-offset: 2px;
+}

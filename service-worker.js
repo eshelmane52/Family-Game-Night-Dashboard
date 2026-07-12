@@ -1,10 +1,13 @@
-const CACHE_NAME = "family-game-night-dashboard-v1.02";
+const CACHE_NAME = "family-game-night-dashboard-v2.01";
 
 const APP_ASSETS = [
     "./",
     "./index.html",
+    "./gift-cards.html",
     "./styles.css",
+    "./gift-cards.css",
     "./app.js",
+    "./gift-cards.js",
     "./manifest.webmanifest",
     "./icons/icon-192.png",
     "./icons/icon-512.png",
@@ -52,7 +55,12 @@ self.addEventListener("fetch", function (event) {
 
             return fetch(event.request).catch(function () {
                 if (event.request.mode === "navigate") {
-                    return caches.match("./index.html");
+                    const requestUrl = new URL(event.request.url);
+                    const fallbackPage = requestUrl.pathname.endsWith("/gift-cards.html")
+                        ? "./gift-cards.html"
+                        : "./index.html";
+
+                    return caches.match(fallbackPage, { ignoreSearch: true });
                 }
             });
         })
