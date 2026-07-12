@@ -334,7 +334,6 @@ function loadGameResults() {
 function getSupabaseHeaders(extraHeaders = {}) {
     return {
         apikey: SUPABASE_PUBLISHABLE_KEY,
-        Authorization: `Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
         ...extraHeaders
     };
 }

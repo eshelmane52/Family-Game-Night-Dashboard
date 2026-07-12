@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gift Card Tracker - Eshelman Dashboard</title>
+    <meta name="theme-color" content="#263238">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="gift-cards.css">
+    <script src="gift-cards.js" defer></script>
+</head>
+
+<body>
+    <nav class="top-nav" aria-label="Main navigation">
+        <a href="./index.html">Game Night</a>
+        <a href="./gift-cards.html" aria-current="page">Gift Cards</a>
+    </nav>
+
+    <header>
+        <h1>Gift Card Tracker</h1>
+        <p>Track household balances without storing card numbers, PINs, or redemption codes.</p>
+        <div id="identity-bar" class="identity-bar hidden">
+            <span>Viewing cards for <strong id="active-identity"></strong></span>
+            <button id="switch-identity-button" type="button" class="secondary-button">Switch Person</button>
+        </div>
+    </header>
+
+    <main class="gift-card-main">
+        <div id="tracker-status" class="tracker-status" role="status" aria-live="polite"></div>
+
+        <div id="tracker-content" class="hidden">
+            <section class="gift-summary" aria-labelledby="gift-summary-heading">
+                <div>
+                    <h2 id="gift-summary-heading">Available Gift Cards</h2>
+                    <p id="combined-balance" class="combined-balance">$0.00</p>
+                    <p id="active-card-count" class="summary-detail">0 active cards</p>
+                </div>
+                <div class="primary-actions">
+                    <button id="record-purchase-button" type="button">Record Purchase</button>
+                    <button id="add-card-button" type="button" class="secondary-button">Add New Card</button>
+                </div>
+            </section>
+
+            <section aria-labelledby="active-cards-heading">
+                <h2 id="active-cards-heading">Active Cards</h2>
+                <div id="active-cards" class="gift-card-list"></div>
+            </section>
+
+            <section>
+                <details class="archived-cards-details">
+                    <summary>Used &amp; Archived Cards <span id="archived-count"></span></summary>
+                    <div id="archived-cards" class="gift-card-list"></div>
+                </details>
+            </section>
+        </div>
+    </main>
+
+    <dialog id="identity-dialog" aria-labelledby="identity-dialog-title">
+        <form id="identity-form">
+            <h2 id="identity-dialog-title">Who is using the tracker?</h2>
+            <p>This choice filters cards on this device. It is not a login or security control.</p>
+            <fieldset class="identity-options">
+                <legend>Household identity</legend>
+                <label><input type="radio" name="identity" value="Evan/Scarlet" required> Evan/Scarlet</label>
+                <label><input type="radio" name="identity" value="Mom" required> Mom</label>
+                <label><input type="radio" name="identity" value="Brina/Ryan" required> Brina/Ryan</label>
+            </fieldset>
+            <div class="dialog-actions">
+                <button id="identity-cancel-button" type="button" class="secondary-button">Cancel</button>
+                <button type="submit">Continue</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="add-card-dialog" aria-labelledby="add-card-title">
+        <form id="add-card-form">
+            <h2 id="add-card-title">Add New Card</h2>
+            <p class="form-error" aria-live="assertive"></p>
+            <label for="add-card-owner">Owner</label>
+            <input id="add-card-owner" type="text" readonly>
+            <label for="card-merchant">Merchant or card type</label>
+            <input id="card-merchant" name="merchant" type="text" maxlength="100" required>
+            <label for="card-nickname">Nickname <span class="optional">(optional)</span></label>
+            <input id="card-nickname" name="nickname" type="text" maxlength="100">
+            <label for="card-initial-balance">Initial balance</label>
+            <input id="card-initial-balance" name="initialBalance" type="text" inputmode="decimal"
+                placeholder="25.00" required>
+            <p class="privacy-note">Never enter a card number, PIN, or redemption code.</p>
+            <div class="dialog-actions">
+                <button type="button" class="secondary-button dialog-cancel">Cancel</button>
+                <button type="submit">Add Card</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="purchase-dialog" aria-labelledby="purchase-title">
+        <form id="purchase-form">
+            <h2 id="purchase-title">Record Purchase</h2>
+            <p class="form-error" aria-live="assertive"></p>
+            <label for="purchase-card">Gift card</label>
+            <select id="purchase-card" name="cardId" required></select>
+            <label for="purchase-amount">Amount spent</label>
+            <input id="purchase-amount" name="amount" type="text" inputmode="decimal" placeholder="12.50" required>
+            <label for="purchase-date">Purchase date</label>
+            <input id="purchase-date" name="purchaseDate" type="date" required>
+            <label for="purchase-location">Location <span class="optional">(optional)</span></label>
+            <input id="purchase-location" name="location" type="text" maxlength="120">
+            <label for="purchase-note">Note <span class="optional">(optional)</span></label>
+            <textarea id="purchase-note" name="note" maxlength="500" rows="3"></textarea>
+            <div class="dialog-actions">
+                <button type="button" class="secondary-button dialog-cancel">Cancel</button>
+                <button type="submit">Save Purchase</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="correct-balance-dialog" aria-labelledby="correct-balance-title">
+        <form id="correct-balance-form">
+            <h2 id="correct-balance-title">Correct Balance</h2>
+            <p class="form-error" aria-live="assertive"></p>
+            <input name="cardId" type="hidden">
+            <p>Calculated balance: <strong id="calculated-balance"></strong></p>
+            <label for="corrected-balance">Actual current balance</label>
+            <input id="corrected-balance" name="correctedBalance" type="text" inputmode="decimal"
+                placeholder="0.00" required>
+            <p class="form-help">The difference is logged as a correction; purchase history stays intact.</p>
+            <div class="dialog-actions">
+                <button type="button" class="secondary-button dialog-cancel">Cancel</button>
+                <button type="submit">Save Correction</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="edit-card-dialog" aria-labelledby="edit-card-title">
+        <form id="edit-card-form">
+            <h2 id="edit-card-title">Edit Card</h2>
+            <p class="form-error" aria-live="assertive"></p>
+            <input name="cardId" type="hidden">
+            <label for="edit-card-merchant">Merchant or card type</label>
+            <input id="edit-card-merchant" name="merchant" type="text" maxlength="100" required>
+            <label for="edit-card-nickname">Nickname <span class="optional">(optional)</span></label>
+            <input id="edit-card-nickname" name="nickname" type="text" maxlength="100">
+            <div class="dialog-actions">
+                <button type="button" class="secondary-button dialog-cancel">Cancel</button>
+                <button type="submit">Save Card</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="edit-purchase-dialog" aria-labelledby="edit-purchase-title">
+        <form id="edit-purchase-form">
+            <h2 id="edit-purchase-title">Edit Purchase</h2>
+            <p class="form-error" aria-live="assertive"></p>
+            <input name="purchaseId" type="hidden">
+            <input name="cardId" type="hidden">
+            <label for="edit-purchase-amount">Amount spent</label>
+            <input id="edit-purchase-amount" name="amount" type="text" inputmode="decimal" required>
+            <label for="edit-purchase-date">Purchase date</label>
+            <input id="edit-purchase-date" name="purchaseDate" type="date" required>
+            <label for="edit-purchase-location">Location <span class="optional">(optional)</span></label>
+            <input id="edit-purchase-location" name="location" type="text" maxlength="120">
+            <label for="edit-purchase-note">Note <span class="optional">(optional)</span></label>
+            <textarea id="edit-purchase-note" name="note" maxlength="500" rows="3"></textarea>
+            <div class="dialog-actions">
+                <button type="button" class="secondary-button dialog-cancel">Cancel</button>
+                <button type="submit">Save Changes</button>
+            </div>
+        </form>
+    </dialog>
+</body>
+
+</html>

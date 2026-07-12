@@ -1,5 +1,14 @@
 # Change Log
 
+## 2026-07-12 - Gift Card Tracker
+
+- Added a separate, responsive Gift Card Tracker page with household identity filtering.
+- Added integer-cent purchase and balance-correction ledgers, transaction history, card management, and archive/restore behavior.
+- Added a review-only Supabase schema with constraints, indexes, foreign keys, and anonymous RLS policies.
+- Added cross-page navigation and cached the new PWA shell assets.
+- Documented the manual database setup, no-auth security limitation, testing, and deployment order.
+- Applied the Supabase migration and verified transactional purchase locking with a controlled live concurrency test.
+
 ## Version 1.00 (aka V3 service worker)
 
 - Initial Release
