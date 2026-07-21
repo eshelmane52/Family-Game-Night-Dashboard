@@ -54,6 +54,28 @@
         return `${safeWins} ${safeWins === 1 ? "Win" : "Wins"}`;
     }
 
+    function sortPlayersByWins(playerNames, winnerCounts) {
+        const counts = winnerCounts && typeof winnerCounts === "object"
+            ? winnerCounts
+            : {};
+
+        return [...playerNames]
+            .map(function (playerName, displayIndex) {
+                return {
+                    displayIndex,
+                    playerName,
+                    wins: normalizeWinCount(counts[playerName])
+                };
+            })
+            .sort(function (firstPlayer, secondPlayer) {
+                return secondPlayer.wins - firstPlayer.wins
+                    || firstPlayer.displayIndex - secondPlayer.displayIndex;
+            })
+            .map(function (player) {
+                return player.playerName;
+            });
+    }
+
     function triggerCelebrationForSubmission(isValidSubmission, celebrate) {
         if (!isValidSubmission) {
             return false;
@@ -349,6 +371,7 @@
         formatWinCount,
         getHighestWinCount,
         setupRulesDismissal,
+        sortPlayersByWins,
         triggerCelebrationForSubmission
     };
 });

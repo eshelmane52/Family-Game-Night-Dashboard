@@ -237,7 +237,10 @@ function getRecentWinner(results) {
 }
 
 function buildWinsByPlayerHTML(winnerCounts) {
-    const winnerNames = [...new Set([...DEFAULT_PLAYERS, ...Object.keys(winnerCounts)])];
+    const playerDisplayOrder = [...new Set([...DEFAULT_PLAYERS, ...Object.keys(winnerCounts)])];
+    const winnerNames = dashboardUI
+        ? dashboardUI.sortPlayersByWins(playerDisplayOrder, winnerCounts)
+        : playerDisplayOrder;
     const highestWins = dashboardUI
         ? dashboardUI.getHighestWinCount(winnerCounts)
         : 0;

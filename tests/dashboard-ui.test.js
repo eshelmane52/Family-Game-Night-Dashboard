@@ -32,6 +32,28 @@ test("win labels use the correct singular and plural forms", function () {
     assert.equal(dashboardUI.formatWinCount(2), "2 Wins");
 });
 
+test("players are sorted by descending wins without mutating configured order", function () {
+    const configuredPlayers = ["Evan", "Mom", "Ryan", "Scarlet", "Brina"];
+    const originalConfiguredPlayers = [...configuredPlayers];
+    const winnerCounts = { Evan: 10, Scarlet: 7, Mom: 3 };
+
+    assert.deepEqual(
+        dashboardUI.sortPlayersByWins(configuredPlayers, winnerCounts),
+        ["Evan", "Scarlet", "Mom", "Ryan", "Brina"]
+    );
+    assert.deepEqual(configuredPlayers, originalConfiguredPlayers);
+});
+
+test("tied win totals preserve existing configured display order", function () {
+    const configuredPlayers = ["Evan", "Mom", "Ryan", "Scarlet", "Brina"];
+    const winnerCounts = { Evan: 5, Mom: 2, Ryan: 5, Scarlet: 2 };
+
+    assert.deepEqual(
+        dashboardUI.sortPlayersByWins(configuredPlayers, winnerCounts),
+        ["Evan", "Ryan", "Mom", "Scarlet", "Brina"]
+    );
+});
+
 test("celebration triggers once for valid submissions and never for invalid submissions", function () {
     let celebrationCount = 0;
     const celebrate = function () {
