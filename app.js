@@ -662,6 +662,10 @@ function renderStats() {
     const winnerCounts = countByProperty(gameResults, "winner");
 
     const topWinner = findHighestCount(winnerCounts, "None yet");
+    const playerDisplayOrder = [...new Set([...DEFAULT_PLAYERS, ...Object.keys(winnerCounts)])];
+    const mostWinsText = dashboardUI
+        ? dashboardUI.buildMostWinsStatText(playerDisplayOrder, winnerCounts, "None yet")
+        : `${topWinner.label} (${topWinner.count})`;
 
     const winsByPlayerHTML = buildWinsByPlayerHTML(winnerCounts);
 
@@ -670,7 +674,7 @@ function renderStats() {
         ${buildStatCardHTML("Total Games", totalGames)}
         ${buildStatCardHTML("Recent Winner", recentWinner)}
         ${buildStatCardHTML("Most Played Game", mostPlayed.label)}
-        ${buildStatCardHTML("Most Wins", `${topWinner.label} (${topWinner.count})`)}
+        ${buildStatCardHTML("Most Wins", mostWinsText)}
     </div>
 
     <div class="wins-by-player">

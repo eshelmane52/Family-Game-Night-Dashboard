@@ -76,6 +76,40 @@
             });
     }
 
+    function formatPlayerNameList(playerNames) {
+        if (playerNames.length <= 1) {
+            return playerNames[0] || "";
+        }
+
+        if (playerNames.length === 2) {
+            return `${playerNames[0]} & ${playerNames[1]}`;
+        }
+
+        return `${playerNames.slice(0, -1).join(", ")} & ${playerNames[playerNames.length - 1]}`;
+    }
+
+    function buildMostWinsStatText(playerNames, winnerCounts, fallbackLabel = "None yet") {
+        const counts = winnerCounts && typeof winnerCounts === "object"
+            ? winnerCounts
+            : {};
+        const highestWins = getHighestWinCount(counts);
+
+        if (highestWins === 0) {
+            return `${fallbackLabel} (0)`;
+        }
+
+        const playerDisplayOrder = [...new Set([...playerNames, ...Object.keys(counts)])];
+        const tiedLeaders = playerDisplayOrder.filter(function (playerName) {
+            return normalizeWinCount(counts[playerName]) === highestWins;
+        });
+
+        if (tiedLeaders.length === 0) {
+            return `${fallbackLabel} (0)`;
+        }
+
+        return `${formatPlayerNameList(tiedLeaders)} \u2014 ${formatWinCount(highestWins)}`;
+    }
+
     function triggerCelebrationForSubmission(isValidSubmission, celebrate) {
         if (!isValidSubmission) {
             return false;
@@ -365,6 +399,7 @@
     }
 
     return {
+        buildMostWinsStatText,
         calculateWinPercentage,
         createCelebrationController,
         dismissRules,

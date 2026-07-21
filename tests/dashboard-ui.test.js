@@ -54,6 +54,54 @@ test("tied win totals preserve existing configured display order", function () {
     );
 });
 
+test("Most Wins formats a single clear leader with a singular win label", function () {
+    const configuredPlayers = ["Evan", "Scarlet", "Mom"];
+    const winnerCounts = { Mom: 0, Evan: 1, Scarlet: 0 };
+    const originalPlayers = [...configuredPlayers];
+    const originalCounts = { ...winnerCounts };
+
+    assert.equal(
+        dashboardUI.buildMostWinsStatText(configuredPlayers, winnerCounts),
+        "Evan \u2014 1 Win"
+    );
+    assert.deepEqual(configuredPlayers, originalPlayers);
+    assert.deepEqual(winnerCounts, originalCounts);
+});
+
+test("Most Wins formats a two-player tie in configured display order", function () {
+    const configuredPlayers = ["Evan", "Scarlet", "Mom"];
+    const winnerCounts = { Scarlet: 10, Evan: 10, Mom: 3 };
+
+    assert.equal(
+        dashboardUI.buildMostWinsStatText(configuredPlayers, winnerCounts),
+        "Evan & Scarlet \u2014 10 Wins"
+    );
+});
+
+test("Most Wins formats three or more tied players with commas and a final ampersand", function () {
+    const configuredPlayers = ["Evan", "Scarlet", "Mom", "Ryan"];
+    const winnerCounts = { Mom: 10, Evan: 10, Ryan: 2, Scarlet: 10 };
+
+    assert.equal(
+        dashboardUI.buildMostWinsStatText(configuredPlayers, winnerCounts),
+        "Evan, Scarlet & Mom \u2014 10 Wins"
+    );
+});
+
+test("Most Wins preserves the all-zero fallback without mutating source collections", function () {
+    const configuredPlayers = ["Evan", "Scarlet", "Mom"];
+    const winnerCounts = { Mom: 0, Evan: 0, Scarlet: 0 };
+    const originalPlayers = [...configuredPlayers];
+    const originalCounts = { ...winnerCounts };
+
+    assert.equal(
+        dashboardUI.buildMostWinsStatText(configuredPlayers, winnerCounts),
+        "None yet (0)"
+    );
+    assert.deepEqual(configuredPlayers, originalPlayers);
+    assert.deepEqual(winnerCounts, originalCounts);
+});
+
 test("celebration triggers once for valid submissions and never for invalid submissions", function () {
     let celebrationCount = 0;
     const celebrate = function () {
