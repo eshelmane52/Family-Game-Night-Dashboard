@@ -10,6 +10,8 @@
     --danger-hover: #8f1d14;
     --title-text: #ffffff;
     --text-subtle: #5f6b76;
+    --win-fill: #82cf9f;
+    --win-track: #edf1ee;
 }
 
 * {
@@ -63,6 +65,50 @@ section {
     border-radius: 12px;
     padding: 16px;
     margin-bottom: 16px;
+}
+
+.rules-section {
+    position: relative;
+    grid-column: 1 / -1;
+    padding-right: 4rem;
+}
+
+.rules-section h2 {
+    margin-bottom: 8px;
+}
+
+.rules-section ul {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.rules-warning {
+    margin: 12px 0 0;
+    padding-top: 12px;
+    border-top: 1px solid var(--border-soft);
+    color: var(--text-subtle);
+}
+
+.close-rules-button {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 44px;
+    min-height: 44px;
+    padding: 0;
+    background-color: transparent;
+    color: var(--danger);
+    font-size: 1.75rem;
+    font-weight: bold;
+    line-height: 1;
+}
+
+.close-rules-button:hover {
+    background-color: #fce8e6;
+    color: var(--danger-hover);
 }
 
 .log-section h2,
@@ -182,8 +228,67 @@ button {
     margin-bottom: 8px;
 }
 
-.wins-by-player p {
-    margin: 4px 0;
+.win-bars {
+    display: grid;
+    gap: 8px;
+}
+
+.win-bar {
+    position: relative;
+    min-width: 0;
+    min-height: 2.75rem;
+    overflow: hidden;
+    border: 1px solid var(--border-soft);
+    border-radius: 8px;
+    background-color: var(--win-track);
+}
+
+.win-bar-fill {
+    position: absolute;
+    inset: 0 auto 0 0;
+    background-color: var(--win-fill);
+    border-radius: inherit;
+}
+
+.win-bar-label {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 2.75rem;
+    gap: 12px;
+    padding: 0.65rem 0.85rem;
+    color: var(--text-main);
+    font-weight: bold;
+    line-height: 1.25;
+}
+
+.win-player-name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.win-count {
+    flex-shrink: 0;
+    font-size: 0.95rem;
+}
+
+.confetti-canvas {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none;
+    opacity: 1;
+    transition: opacity var(--confetti-fade-duration, 1000ms) ease-out;
+}
+
+.confetti-canvas--fading {
+    opacity: 0;
 }
 
 @media (min-width: 700px) {

@@ -9,6 +9,7 @@
     <link rel="manifest" href="manifest.webmanifest">
     <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
     <link rel="stylesheet" href="styles.css">
+    <script src="dashboard-ui.js" defer></script>
     <script src="app.js" defer></script>
 </head>
 
@@ -24,6 +25,17 @@
     </header>
 
     <main>
+        <section id="rules-section" class="rules-section" aria-labelledby="rules-title">
+            <button id="close-rules-button" class="close-rules-button" type="button" aria-label="Close rules">
+                &times;
+            </button>
+            <h2 id="rules-title">Rules</h2>
+            <ul>
+                <li>Only games played against other app users may be logged.</li>
+            </ul>
+            <p class="rules-warning"><em>Failure to abide by the established rules is subject to tar and feather. You have been warned.</em></p>
+        </section>
+
         <section class="entry-section">
             <h2>Add Game Result</h2>
             <p>Track the Game Result here you Clown </p>
