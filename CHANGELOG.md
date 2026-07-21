@@ -1,5 +1,14 @@
 # Change Log
 
+## Version 1.03
+
+- Replaced player win text with responsive bars scaled against the current leader.
+- Sorted win bars from most wins to least while preserving configured order for ties.
+- Updated the Most Wins statistic to list every tied leader in configured display order.
+- Added a local victory sound and lightweight, reduced-motion-aware confetti for valid result submissions.
+- Added a session-only dismissible Rules card above the result form.
+- Added the new dashboard UI and audio assets to the bumped offline cache.
+
 ## 2026-07-12 - Gift Card Tracker
 
 - Added a separate, responsive Gift Card Tracker page with household identity filtering.

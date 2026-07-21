@@ -11,7 +11,15 @@ const importJsonButton = document.querySelector("#import-json-button");
 const resetDataButton = document.querySelector("#reset-data-button");
 const customGameWrapper = document.querySelector("#custom-game-wrapper");
 const customGameNameInput = document.querySelector("#custom-game-name");
+const rulesSection = document.querySelector("#rules-section");
+const closeRulesButton = document.querySelector("#close-rules-button");
 const CUSTOM_GAME_VALUE = "__custom_game__";
+const dashboardUI = window.FamilyGameNightUI;
+const celebrationController = dashboardUI
+    ? dashboardUI.createCelebrationController({
+        audioSource: "assets/audio/victory.mp3"
+    })
+    : null;
 
 /////////////////////////////// 2. App data //////////////////////////////////
 const STORAGE_KEY = "gameResults";
@@ -229,17 +237,39 @@ function getRecentWinner(results) {
 }
 
 function buildWinsByPlayerHTML(winnerCounts) {
-    const winnerNames = Object.keys(winnerCounts);
+    const playerDisplayOrder = [...new Set([...DEFAULT_PLAYERS, ...Object.keys(winnerCounts)])];
+    const winnerNames = dashboardUI
+        ? dashboardUI.sortPlayersByWins(playerDisplayOrder, winnerCounts)
+        : playerDisplayOrder;
+    const highestWins = dashboardUI
+        ? dashboardUI.getHighestWinCount(winnerCounts)
+        : 0;
 
-    if (winnerNames.length === 0) {
-        return "<p>No wins logged yet.</p>";
-    }
-
-    return winnerNames
+    const winBarsHTML = winnerNames
         .map(function (winnerName) {
-            return `<p>${escapeHTML(winnerName)}: ${escapeHTML(winnerCounts[winnerName])} wins</p>`;
+            const wins = Number(winnerCounts[winnerName]) || 0;
+            const percentage = dashboardUI
+                ? dashboardUI.calculateWinPercentage(wins, highestWins)
+                : 0;
+            const percentageText = percentage.toFixed(2).replace(/\.00$/, "");
+            const winCountText = dashboardUI
+                ? dashboardUI.formatWinCount(wins)
+                : `${wins} ${wins === 1 ? "Win" : "Wins"}`;
+            const accessibleLabel = `${winnerName}, ${winCountText}`;
+
+            return `
+                <div class="win-bar" role="img" aria-label="${escapeHTML(accessibleLabel)}">
+                    <div class="win-bar-fill" style="width: ${percentageText}%"></div>
+                    <div class="win-bar-label" aria-hidden="true">
+                        <span class="win-player-name">${escapeHTML(winnerName)}</span>
+                        <span class="win-count">${escapeHTML(winCountText)}</span>
+                    </div>
+                </div>
+            `;
         })
         .join("");
+
+    return `<div class="win-bars">${winBarsHTML}</div>`;
 }
 
 function findHighestCount(counts, fallbackLabel) {
@@ -260,7 +290,7 @@ function findHighestCount(counts, fallbackLabel) {
 }
 
 function countByProperty(results, propertyName) {
-    const counts = {};
+    const counts = Object.create(null);
 
     results.forEach(function (result) {
         const propertyValue = result[propertyName];
@@ -632,6 +662,10 @@ function renderStats() {
     const winnerCounts = countByProperty(gameResults, "winner");
 
     const topWinner = findHighestCount(winnerCounts, "None yet");
+    const playerDisplayOrder = [...new Set([...DEFAULT_PLAYERS, ...Object.keys(winnerCounts)])];
+    const mostWinsText = dashboardUI
+        ? dashboardUI.buildMostWinsStatText(playerDisplayOrder, winnerCounts, "None yet")
+        : `${topWinner.label} (${topWinner.count})`;
 
     const winsByPlayerHTML = buildWinsByPlayerHTML(winnerCounts);
 
@@ -640,7 +674,7 @@ function renderStats() {
         ${buildStatCardHTML("Total Games", totalGames)}
         ${buildStatCardHTML("Recent Winner", recentWinner)}
         ${buildStatCardHTML("Most Played Game", mostPlayed.label)}
-        ${buildStatCardHTML("Most Wins", `${topWinner.label} (${topWinner.count})`)}
+        ${buildStatCardHTML("Most Wins", mostWinsText)}
     </div>
 
     <div class="wins-by-player">
@@ -663,6 +697,10 @@ renderApp();
 setDefaultGameDate();
 loadSharedGameResults();
 
+if (dashboardUI) {
+    dashboardUI.setupRulesDismissal(rulesSection, closeRulesButton);
+}
+
 
 //6. Event Listeners
 gameForm.addEventListener("submit", async function (event) {
@@ -670,7 +708,16 @@ gameForm.addEventListener("submit", async function (event) {
 
     const formValues = getGameResultFormData();
 
-    if (!isValidGameResultFormData(formValues)) {
+    const isValidSubmission = isValidGameResultFormData(formValues);
+    const shouldContinue = dashboardUI
+        ? dashboardUI.triggerCelebrationForSubmission(isValidSubmission, function () {
+            if (celebrationController) {
+                celebrationController.celebrate();
+            }
+        })
+        : isValidSubmission;
+
+    if (!shouldContinue) {
         alert("Please choose a date, game, and winner before adding a result.");
         return;
     }

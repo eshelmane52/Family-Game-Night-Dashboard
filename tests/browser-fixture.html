@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <base href="../">
+    <title>Family Game Night Browser Test Fixture</title>
+    <link rel="stylesheet" href="styles.css">
+    <script>
+        (function () {
+            const scenario = new URLSearchParams(window.location.search).get("scenario") || "all-zero";
+            const fixtureCounts = scenario === "tied"
+                ? { Evan: 10, Mom: 9, Ryan: 4, Scarlet: 10, Brina: 1 }
+                : scenario === "small-zero"
+                    ? { Evan: 10, Scarlet: 1 }
+                    : {};
+            const rows = [];
+            let rowNumber = 0;
+
+            Object.entries(fixtureCounts).forEach(function ([winner, count]) {
+                for (let index = 0; index < count; index += 1) {
+                    rowNumber += 1;
+                    rows.push({
+                        id: `fixture-${rowNumber}`,
+                        game: index % 2 === 0 ? "Farkle" : "Hearts",
+                        winner,
+                        played_date: "2026-07-20",
+                        note: "",
+                        created_at: new Date(Date.UTC(2026, 6, 20, 12, 0, rowNumber)).toISOString(),
+                        created_by: "browser-fixture"
+                    });
+                }
+            });
+
+            const fixtureState = {
+                audio: null,
+                audioPlayCalls: 0,
+                audioSource: "",
+                requests: [],
+                rows
+            };
+            const NativeAudio = window.Audio;
+
+            window.__gameNightFixture = fixtureState;
+            window.Audio = function (source) {
+                const audio = new NativeAudio(source);
+                const nativePlay = audio.play.bind(audio);
+                const fixtureRoot = document.documentElement;
+
+                fixtureState.audio = audio;
+                fixtureState.audioSource = source;
+                fixtureRoot.dataset.audioSource = source;
+                fixtureRoot.dataset.audioPlayCalls = "0";
+                audio.play = function () {
+                    fixtureState.audioPlayCalls += 1;
+                    fixtureRoot.dataset.audioPlayCalls = String(fixtureState.audioPlayCalls);
+                    const playResult = nativePlay();
+
+                    Promise.resolve(playResult)
+                        .then(function () {
+                            fixtureRoot.dataset.audioPlayback = "started";
+                        })
+                        .catch(function () {
+                            fixtureRoot.dataset.audioPlayback = "blocked";
+                        });
+
+                    return playResult;
+                };
+
+                return audio;
+            };
+            window.Audio.prototype = NativeAudio.prototype;
+
+            window.fetch = async function (input, init = {}) {
+                const requestUrl = String(input);
+                const method = init.method || "GET";
+                fixtureState.requests.push({ method, url: requestUrl });
+
+                if (method === "POST") {
+                    const submittedRows = JSON.parse(init.body);
+                    const rowsToAdd = Array.isArray(submittedRows) ? submittedRows : [submittedRows];
+
+                    rowsToAdd.forEach(function (row) {
+                        rowNumber += 1;
+                        fixtureState.rows.push({
+                            id: `fixture-new-${rowNumber}`,
+                            game: row.game,
+                            winner: row.winner,
+                            played_date: row.played_date,
+                            note: row.note || "",
+                            created_at: new Date(Date.UTC(2026, 6, 20, 13, 0, rowNumber)).toISOString(),
+                            created_by: row.created_by || ""
+                        });
+                    });
+
+                    return new Response(null, { status: 201 });
+                }
+
+                if (method === "DELETE") {
+                    if (requestUrl.includes("id=not.is.null")) {
+                        fixtureState.rows.splice(0, fixtureState.rows.length);
+                    } else {
+                        const match = requestUrl.match(/id=eq\.([^&]+)/);
+                        const idToDelete = match ? decodeURIComponent(match[1]) : "";
+                        const deleteIndex = fixtureState.rows.findIndex(function (row) {
+                            return row.id === idToDelete;
+                        });
+
+                        if (deleteIndex !== -1) {
+                            fixtureState.rows.splice(deleteIndex, 1);
+                        }
+                    }
+
+                    return new Response(null, { status: 204 });
+                }
+
+                return new Response(JSON.stringify(fixtureState.rows), {
+                    status: 200,
+                    headers: { "Content-Type": "application/json" }
+                });
+            };
+        })();
+    </script>
+    <script src="dashboard-ui.js" defer></script>
+    <script src="app.js" defer></script>
+</head>
+
+<body>
+    <nav class="top-nav" aria-label="Main navigation">
+        <a href="./index.html" aria-current="page">Game Night</a>
+        <a href="./gift-cards.html">Gift Cards</a>
+    </nav>
+
+    <header>
+        <h1>Eshelman Game Night Scorecard</h1>
+        <p>Track Winners of the games we play. Romy Certified.</p>
+    </header>
+
+    <main>
+        <section id="rules-section" class="rules-section" aria-labelledby="rules-title">
+            <button id="close-rules-button" class="close-rules-button" type="button" aria-label="Close rules">
+                &times;
+            </button>
+            <h2 id="rules-title">Rules</h2>
+            <ul>
+                <li>Only games played against other app users may be logged.</li>
+            </ul>
+            <p class="rules-warning"><em>Failure to abide by the established rules is subject to tar and feather. You have been warned.</em></p>
+        </section>
+
+        <section class="entry-section">
+            <h2>Add Game Result</h2>
+            <p>Browser test fixture</p>
+
+            <form id="game-form">
+                <label for="game-date">Date</label>
+                <input type="date" id="game-date" name="gameDate" required />
+
+                <label for="game-name">Game</label>
+                <select id="game-name" name="gameName" required></select>
+
+                <div id="custom-game-wrapper" class="custom-game-wrapper hidden">
+                    <label for="custom-game-name">Custom Game Name</label>
+                    <input type="text" id="custom-game-name" name="customGameName" />
+                </div>
+
+                <label for="winner-name">Winner</label>
+                <select id="winner-name" name="winnerName" required></select>
+
+                <label for="game-note">Note:</label>
+                <input type="text" id="game-note" name="gameNote" />
+
+                <button type="submit">Add Result</button>
+            </form>
+        </section>
+
+        <section class="stats-section">
+            <h2>Stats</h2>
+            <div id="stats"></div>
+        </section>
+
+        <section class="log-section">
+            <details class="game-log-details" open>
+                <summary>Game Log</summary>
+                <div id="game-log"></div>
+            </details>
+        </section>
+
+        <section class="data-tools-section">
+            <details class="data-tools">
+                <summary>Data Tools</summary>
+                <div class="data-tools-content">
+                    <button id="export-json-button" type="button">Export JSON Backup</button>
+                    <label for="import-json-input">Import JSON Backup</label>
+                    <input id="import-json-input" type="file" accept="application/json,.json" />
+                    <button id="import-json-button" type="button">Import Selected Backup</button>
+                    <button id="reset-data-button" type="button">Reset All Data</button>
+                </div>
+            </details>
+        </section>
+    </main>
+</body>
+
+</html>
