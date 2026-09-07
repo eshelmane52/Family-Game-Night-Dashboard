@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Tracker Browser Fixture</title>
+    <base href="../">
+    <link rel="stylesheet" href="../styles.css?fixture=2">
+    <link rel="stylesheet" href="../workouts.css?fixture=2">
+    <script>
+        (function () {
+            function dateString(date) {
+                return date.getFullYear() + "-"
+                    + String(date.getMonth() + 1).padStart(2, "0") + "-"
+                    + String(date.getDate()).padStart(2, "0");
+            }
+
+            function shiftedDate(amount) {
+                const date = new Date();
+                date.setDate(date.getDate() + amount);
+                return dateString(date);
+            }
+
+            let mockRows = [
+                { id: "evan-3", workout_date: shiftedDate(-2), person: "Evan", created_at: new Date().toISOString() },
+                { id: "evan-2", workout_date: shiftedDate(-1), person: "Evan", created_at: new Date().toISOString() },
+                { id: "evan-1", workout_date: shiftedDate(0), person: "Evan", created_at: new Date().toISOString() },
+                { id: "scarlet-2", workout_date: shiftedDate(-1), person: "Scarlet", created_at: new Date().toISOString() },
+                { id: "scarlet-1", workout_date: shiftedDate(0), person: "Scarlet", created_at: new Date().toISOString() },
+                { id: "mom-1", workout_date: shiftedDate(-1), person: "Mom", created_at: new Date().toISOString() }
+            ];
+
+            localStorage.setItem("workoutTrackerIdentity", "Evan");
+
+            window.fetch = async function (url, options) {
+                const settings = options || {};
+
+                if ((settings.method || "GET") === "POST") {
+                    const body = JSON.parse(settings.body);
+                    const row = {
+                        id: "mock-" + Date.now(),
+                        workout_date: body.workout_date,
+                        person: body.person,
+                        created_at: new Date().toISOString()
+                    };
+                    mockRows.push(row);
+                    return new Response(JSON.stringify([row]), {
+                        headers: { "Content-Type": "application/json" },
+                        status: 201
+                    });
+                }
+
+                if (settings.method === "DELETE") {
+                    const idMatch = String(url).match(/[?&]id=eq\.([^&]+)/);
+                    const id = idMatch ? decodeURIComponent(idMatch[1]) : "";
+                    mockRows = mockRows.filter(function (row) {
+                        return row.id !== id;
+                    });
+                    return new Response(null, { status: 204 });
+                }
+
+                return new Response(JSON.stringify(mockRows), {
+                    headers: { "Content-Type": "application/json" },
+                    status: 200
+                });
+            };
+        })();
+    </script>
+    <script src="../workout-utils.js?fixture=2" defer></script>
+    <script src="../workouts.js?fixture=2" defer></script>
+</head>
+
+<body>
+    <header>
+        <h1>Family Workout Tracker</h1>
+        <p>One active day at a time. Show up, check in, and keep the streak going.</p>
+    </header>
+
+    <main class="workout-main">
+        <div id="workout-status" class="tracker-status" role="status" aria-live="polite"></div>
+        <div id="workout-content" class="hidden">
+            <section class="workout-today">
+                <div class="workout-identity">
+                    <span>Tracking as <strong id="workout-identity-name"></strong></span>
+                    <button id="change-workout-identity" type="button" class="text-button">Change</button>
+                </div>
+                <h2>Today's activity</h2>
+                <button id="today-workout-button" type="button" class="today-workout-button"></button>
+                <p id="workout-feedback" class="workout-feedback" role="status" aria-live="polite"></p>
+            </section>
+            <div class="workout-overview">
+                <section>
+                    <h2 id="standings-heading">Monthly Standings</h2>
+                    <div id="workout-standings"></div>
+                </section>
+                <section>
+                    <h2 id="streaks-heading">Current Streaks</h2>
+                    <div id="workout-streaks"></div>
+                </section>
+            </div>
+            <section class="calendar-section">
+                <div class="calendar-toolbar">
+                    <button id="previous-month" type="button" class="secondary-button" aria-label="Show previous month">&larr;</button>
+                    <div>
+                        <h2 id="calendar-heading"></h2>
+                        <button id="show-current-month" type="button" class="text-button">Today</button>
+                    </div>
+                    <button id="next-month" type="button" class="secondary-button" aria-label="Show next month">&rarr;</button>
+                </div>
+                <div class="workout-legend">
+                    <span><strong>E</strong> Evan</span>
+                    <span><strong>S</strong> Scarlet</span>
+                    <span><strong>M</strong> Mom</span>
+                </div>
+                <p class="calendar-help">Tap your own marker to correct today or an earlier date. Other family activity is read-only.</p>
+                <div class="calendar-weekdays" aria-hidden="true">
+                    <span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span>
+                    <span>Thu</span><span>Fri</span><span>Sat</span>
+                </div>
+                <div id="workout-calendar" class="workout-calendar"></div>
+            </section>
+        </div>
+    </main>
+
+    <dialog id="workout-identity-dialog">
+        <form id="workout-identity-form">
+            <h2>Who are you?</h2>
+            <fieldset class="identity-options">
+                <legend>Workout participant</legend>
+                <label><input type="radio" name="identity" value="Evan" required> Evan</label>
+                <label><input type="radio" name="identity" value="Scarlet" required> Scarlet</label>
+                <label><input type="radio" name="identity" value="Mom" required> Mom</label>
+            </fieldset>
+            <div class="dialog-actions">
+                <button id="workout-identity-cancel" type="button" class="secondary-button">Cancel</button>
+                <button type="submit">Continue</button>
+            </div>
+        </form>
+    </dialog>
+
+    <nav class="bottom-nav" aria-label="Dashboard modules">
+        <a href="../index.html"><span class="bottom-nav-icon" aria-hidden="true">&#127922;</span><span>Games</span></a>
+        <a href="../workouts.html" aria-current="page"><span class="bottom-nav-icon" aria-hidden="true">&#10003;</span><span>Workouts</span></a>
+        <a href="../gift-cards.html"><span class="bottom-nav-icon" aria-hidden="true">&#127873;</span><span>Gift Cards</span></a>
+    </nav>
+</body>
+
+</html>
