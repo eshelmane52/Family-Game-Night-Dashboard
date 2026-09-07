@@ -117,6 +117,33 @@ test("workout dates expose an accessible expanded-detail dialog", function () {
     );
 });
 
+test("workout completion audio is guarded by the successful today celebration", function () {
+    const workoutSource = readProjectFile("workouts.js");
+    const audioPath = path.join(projectRoot, "assets", "audio", "workout-complete.mp3");
+
+    assert.match(
+        workoutSource,
+        /const WORKOUT_COMPLETE_AUDIO_SOURCE = "assets\/audio\/workout-complete\.mp3"/
+    );
+    assert.match(workoutSource, /new Audio\(WORKOUT_COMPLETE_AUDIO_SOURCE\)/);
+    assert.match(workoutSource, /audio\.preload = "auto"/);
+    assert.match(workoutSource, /audio\.volume = WORKOUT_COMPLETE_AUDIO_VOLUME/);
+    assert.match(
+        workoutSource,
+        /if \(newWorkoutSaved && dateString === today\) \{\s*animateTodayWorkoutCompletion\(\);\s*playWorkoutCompletionSound\(\);\s*\}/
+    );
+    assert.match(
+        workoutSource,
+        /const playPromise = workoutCompletionAudio\.play\(\);[\s\S]*playPromise\.catch/
+    );
+    assert.equal(
+        (workoutSource.match(/playWorkoutCompletionSound\(\);/g) || []).length,
+        1,
+        "the completion sound has one success-path call site"
+    );
+    assert.ok(fs.statSync(audioPath).size > 0, "workout completion audio asset is non-empty");
+});
+
 test("the service worker caches every production module shell asset", function () {
     const serviceWorkerSource = readProjectFile("service-worker.js");
     const requiredAssets = [
@@ -130,7 +157,8 @@ test("the service worker caches every production module shell asset", function (
         "./workout-utils.js",
         "./app.js",
         "./workouts.js",
-        "./gift-cards.js"
+        "./gift-cards.js",
+        "./assets/audio/workout-complete.mp3"
     ];
 
     requiredAssets.forEach(function (asset) {
@@ -140,6 +168,6 @@ test("the service worker caches every production module shell asset", function (
         );
     });
 
-    assert.match(serviceWorkerSource, /family-game-night-dashboard-v3\.01/);
+    assert.match(serviceWorkerSource, /family-game-night-dashboard-v3\.02/);
     assert.match(serviceWorkerSource, /endsWith\("\/workouts\.html"\)/);
 });

@@ -1,4 +1,4 @@
-const CACHE_NAME = "family-game-night-dashboard-v3.01";
+const CACHE_NAME = "family-game-night-dashboard-v3.02";
 
 const APP_ASSETS = [
     "./",
@@ -14,6 +14,7 @@ const APP_ASSETS = [
     "./workouts.js",
     "./gift-cards.js",
     "./assets/audio/victory.mp3",
+    "./assets/audio/workout-complete.mp3",
     "./manifest.webmanifest",
     "./icons/icon-192.png",
     "./icons/icon-512.png",

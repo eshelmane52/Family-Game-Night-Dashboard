@@ -6,6 +6,8 @@ const WORKOUT_SUPABASE_REST_URL = "https://hjftnsaabyntyliwgjie.supabase.co/rest
 const WORKOUT_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_WkyBjvODmxrICShiF_09qw_VNEg-ghY";
 const WORKOUT_RESULTS_TABLE = "workout_results";
 const WORKOUT_FETCH_PAGE_SIZE = 500;
+const WORKOUT_COMPLETE_AUDIO_SOURCE = "assets/audio/workout-complete.mp3";
+const WORKOUT_COMPLETE_AUDIO_VOLUME = 0.35;
 const workoutUtils = window.WorkoutTrackerUtils;
 
 const workoutElements = {
@@ -39,6 +41,23 @@ let workoutMutationInProgress = false;
 const initialMonth = new Date();
 let displayedWorkoutYear = initialMonth.getFullYear();
 let displayedWorkoutMonth = initialMonth.getMonth();
+
+function createWorkoutCompletionAudio() {
+    if (typeof Audio !== "function") {
+        return null;
+    }
+
+    try {
+        const audio = new Audio(WORKOUT_COMPLETE_AUDIO_SOURCE);
+        audio.preload = "auto";
+        audio.volume = WORKOUT_COMPLETE_AUDIO_VOLUME;
+        return audio;
+    } catch (error) {
+        return null;
+    }
+}
+
+const workoutCompletionAudio = createWorkoutCompletionAudio();
 
 function createWorkoutElement(tagName, options, children) {
     const settings = options || {};
@@ -568,6 +587,36 @@ function animateTodayWorkoutCompletion() {
     }, 650);
 }
 
+function playWorkoutCompletionSound() {
+    if (!workoutCompletionAudio) {
+        return;
+    }
+
+    try {
+        workoutCompletionAudio.pause();
+    } catch (error) {
+        // Continue and still attempt playback.
+    }
+
+    try {
+        workoutCompletionAudio.currentTime = 0;
+    } catch (error) {
+        // Some browsers do not allow seeking before audio metadata is ready.
+    }
+
+    try {
+        const playPromise = workoutCompletionAudio.play();
+
+        if (playPromise && typeof playPromise.catch === "function") {
+            playPromise.catch(function () {
+                // Playback policies vary; the saved workout remains successful.
+            });
+        }
+    } catch (error) {
+        // Audio support must never interfere with a successful workout save.
+    }
+}
+
 async function toggleWorkoutResult(dateString) {
     if (workoutMutationInProgress || !selectedWorkoutIdentity) {
         return;
@@ -647,6 +696,7 @@ async function toggleWorkoutResult(dateString) {
 
             if (newWorkoutSaved && dateString === today) {
                 animateTodayWorkoutCompletion();
+                playWorkoutCompletionSound();
             }
         }
     }

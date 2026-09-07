@@ -22,6 +22,11 @@
                 return dateString(date);
             }
 
+            const fixtureParameters = new URLSearchParams(window.location.search);
+            const audioMode = fixtureParameters.get("audio") || "";
+            const getMode = fixtureParameters.get("get") || "";
+            const postMode = fixtureParameters.get("post") || "";
+            const todayMode = fixtureParameters.get("today") || "";
             let mockRows = [
                 { id: "evan-3", workout_date: shiftedDate(-2), person: "Evan", created_at: new Date().toISOString() },
                 { id: "evan-2", workout_date: shiftedDate(-1), person: "Evan", created_at: new Date().toISOString() },
@@ -30,6 +35,69 @@
                 { id: "scarlet-1", workout_date: shiftedDate(0), person: "Scarlet", created_at: new Date().toISOString() },
                 { id: "mom-1", workout_date: shiftedDate(-1), person: "Mom", created_at: new Date().toISOString() }
             ];
+            const fixtureRoot = document.documentElement;
+            const fixtureState = {
+                audio: null,
+                audioPlayCalls: 0,
+                audioSource: "",
+                deleteCalls: 0,
+                getCalls: 0,
+                postCalls: 0
+            };
+            const NativeAudio = window.Audio;
+
+            if (todayMode === "empty") {
+                const today = shiftedDate(0);
+                mockRows = mockRows.filter(function (row) {
+                    return row.person !== "Evan" || row.workout_date !== today;
+                });
+            }
+
+            window.__workoutFixture = fixtureState;
+            fixtureRoot.dataset.audioPlayCalls = "0";
+            fixtureRoot.dataset.audioPlayback = "idle";
+            fixtureRoot.dataset.deleteCalls = "0";
+            fixtureRoot.dataset.getCalls = "0";
+            fixtureRoot.dataset.postCalls = "0";
+            window.Audio = function (source) {
+                const audio = new NativeAudio(source);
+                const nativePlay = audio.play.bind(audio);
+
+                fixtureState.audio = audio;
+                fixtureState.audioSource = source;
+                fixtureRoot.dataset.audioSource = source;
+                audio.play = function () {
+                    fixtureState.audioPlayCalls += 1;
+                    fixtureRoot.dataset.audioPlayCalls = String(fixtureState.audioPlayCalls);
+                    fixtureRoot.dataset.audioPreload = audio.preload;
+                    fixtureRoot.dataset.audioVolume = String(audio.volume);
+
+                    if (audioMode === "reject") {
+                        fixtureRoot.dataset.audioPlayback = "blocked";
+                        return Promise.reject(new Error("Fixture audio playback rejected."));
+                    }
+
+                    let playResult;
+
+                    try {
+                        playResult = nativePlay();
+                    } catch (error) {
+                        fixtureRoot.dataset.audioPlayback = "blocked";
+                        throw error;
+                    }
+
+                    Promise.resolve(playResult)
+                        .then(function () {
+                            fixtureRoot.dataset.audioPlayback = "started";
+                        })
+                        .catch(function () {
+                            fixtureRoot.dataset.audioPlayback = "blocked";
+                        });
+                    return playResult;
+                };
+                return audio;
+            };
+            window.Audio.prototype = NativeAudio.prototype;
 
             localStorage.setItem("workoutTrackerIdentity", "Evan");
 
@@ -37,6 +105,29 @@
                 const settings = options || {};
 
                 if ((settings.method || "GET") === "POST") {
+                    fixtureState.postCalls += 1;
+                    fixtureRoot.dataset.postCalls = String(fixtureState.postCalls);
+
+                    if (postMode === "duplicate") {
+                        return new Response(JSON.stringify({
+                            code: "23505",
+                            message: "Fixture duplicate workout."
+                        }), {
+                            headers: { "Content-Type": "application/json" },
+                            status: 409
+                        });
+                    }
+
+                    if (postMode === "failure") {
+                        return new Response(JSON.stringify({
+                            code: "FIXTURE_FAILURE",
+                            message: "Fixture workout save failed."
+                        }), {
+                            headers: { "Content-Type": "application/json" },
+                            status: 500
+                        });
+                    }
+
                     const body = JSON.parse(settings.body);
                     const row = {
                         id: "mock-" + Date.now(),
@@ -52,12 +143,27 @@
                 }
 
                 if (settings.method === "DELETE") {
+                    fixtureState.deleteCalls += 1;
+                    fixtureRoot.dataset.deleteCalls = String(fixtureState.deleteCalls);
                     const idMatch = String(url).match(/[?&]id=eq\.([^&]+)/);
                     const id = idMatch ? decodeURIComponent(idMatch[1]) : "";
                     mockRows = mockRows.filter(function (row) {
                         return row.id !== id;
                     });
                     return new Response(null, { status: 204 });
+                }
+
+                fixtureState.getCalls += 1;
+                fixtureRoot.dataset.getCalls = String(fixtureState.getCalls);
+
+                if (getMode === "failure-once" && fixtureState.getCalls === 1) {
+                    return new Response(JSON.stringify({
+                        code: "FIXTURE_LOAD_FAILURE",
+                        message: "Fixture workout load failed."
+                    }), {
+                        headers: { "Content-Type": "application/json" },
+                        status: 500
+                    });
                 }
 
                 return new Response(JSON.stringify(mockRows), {
@@ -67,8 +173,8 @@
             };
         })();
     </script>
-    <script src="../workout-utils.js?fixture=3" defer></script>
-    <script src="../workouts.js?fixture=3" defer></script>
+    <script src="../workout-utils.js?fixture=4" defer></script>
+    <script src="../workouts.js?fixture=4" defer></script>
 </head>
 
 <body>

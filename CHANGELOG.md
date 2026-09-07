@@ -1,5 +1,12 @@
 # Change Log
 
+## 2026-09-07 - Workout Completion Sound
+
+- Added a preloaded, modest-volume sound to the existing successful-today workout celebration.
+- Kept refreshes, removals, historical corrections, duplicates, and failed saves silent.
+- Made blocked or failed audio playback independent from successful workout persistence and UI updates.
+- Added the workout sound asset to the offline app shell and bumped its cache version.
+
 ## 2026-09-06 - Workout Tracker Follow-up
 
 - Fixed the workout page's first-load initialization order so saved identities refresh normally.
