@@ -26,6 +26,10 @@ Completed:
 - Offline app shell support
 - Supabase shared backend persistence
 - Cross-device shared sync for add/delete/reset/import behavior
+- Fixed bottom navigation for Games, Workouts, and Gift Cards
+- Categorized game selector with grouped native options
+- Shared daily Workout Tracker for Evan, Scarlet, and Mom
+- Workout calendar, monthly standings, and current streaks
 
 ## Tech stack
 
@@ -39,6 +43,46 @@ Completed:
   - app icons in `/icons`
 - Supabase REST API backend
 - Browser `localStorage` as a local last-saved cache/fallback
+
+## Dashboard navigation
+
+Games, Workouts, and Gift Cards use a common fixed bottom toolbar. Each module
+remains a small static page so the existing GitHub Pages and PWA architecture is
+unchanged.
+
+## Workout Tracker
+
+The `workouts.html` page records one date-only workout credit per participant
+per calendar day. Evan, Scarlet, and Mom can see everyone's activity, while the
+locally selected identity controls which person's dates are editable. The
+identity is remembered with `localStorage`; it is an honor-system convenience,
+not authentication.
+
+Workout activity is stored in Supabase rather than browser storage. The main
+view includes a one-tap control for today, month-specific standings, current
+streaks that can cross month boundaries, and a responsive monthly calendar.
+Selecting a date or its date number opens a large-text summary with each
+participant's full name and workout status.
+Past dates can be corrected, future dates are disabled, and only a newly saved
+workout for today triggers the completion animation and modest-volume
+completion sound.
+
+### Workout Supabase setup
+
+The Workout Tracker is not operational until its schema has been applied to the
+same Supabase project used by the other modules.
+
+1. Open the Supabase SQL Editor.
+2. Review `supabase/workout-tracker.sql`.
+3. Run the complete file manually.
+4. Confirm `workout_results` has the unique constraint on
+   `(workout_date, person)`, the future-date trigger, grants, and anonymous RLS
+   policies.
+5. Complete the cross-device tests before deployment.
+
+The schema stores `workout_date` as PostgreSQL `date`, permits only Evan,
+Scarlet, or Mom, prevents duplicate daily credit, and rejects future dates at
+both the policy and trigger layers.
 
 ## Gift Card Tracker
 
@@ -84,7 +128,9 @@ Serve the repository over HTTP rather than opening files directly:
 python -m http.server 8000
 ```
 
-Open `http://localhost:8000/` for Game Night and `http://localhost:8000/gift-cards.html` for the tracker. Service workers require localhost or HTTPS. Before the SQL migration is applied, the Gift Card page should show a clear Supabase setup/load error; that expected error is not a completed integration test.
+Open `http://localhost:8000/` for Games,
+`http://localhost:8000/workouts.html` for Workouts, and
+`http://localhost:8000/gift-cards.html` for Gift Cards. Service workers require localhost or HTTPS. Before a required SQL migration is applied, its tracker should show a clear Supabase setup/load error; that expected error is not a completed integration test.
 
 ### Deployment order
 
@@ -110,3 +156,4 @@ Family-Game-Night-Dashboard/
    ├─ icon-512.png
    ├─ apple-touch-icon.png
    └─ .gitkeep
+```

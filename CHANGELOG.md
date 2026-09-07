@@ -1,5 +1,31 @@
 # Change Log
 
+## 2026-09-07 - Workout Completion Sound
+
+- Added a preloaded, modest-volume sound to the existing successful-today workout celebration.
+- Kept refreshes, removals, historical corrections, duplicates, and failed saves silent.
+- Made blocked or failed audio playback independent from successful workout persistence and UI updates.
+- Added the workout sound asset to the offline app shell and bumped its cache version.
+
+## 2026-09-06 - Workout Tracker Follow-up
+
+- Fixed the workout page's first-load initialization order so saved identities refresh normally.
+- Added an accessible, reduced-motion-aware date details dialog with full participant names and statuses.
+- Kept participant-marker editing separate from general date-cell detail viewing.
+- Moved Wheel of Fortune into the Trivia / Game Show category.
+- Bumped the offline app-shell cache for the refreshed workout assets.
+
+## 2026-09-06 - Workout Tracker and Dashboard Navigation
+
+- Added a fixed, safe-area-aware bottom toolbar for Games, Workouts, and Gift Cards.
+- Grouped the native game selector by category and added Gin Rummy, Wheel of Fortune, Jeopardy, Password, and Blank Space.
+- Added the shared Workout Tracker for Evan, Scarlet, and Mom with remembered device identity.
+- Added one-tap daily completion, historical corrections, selected-user-only editing, and future-date protection.
+- Added monthly standings, current cross-month streaks, and a responsive month calendar.
+- Added a review-only Supabase schema with a date-only model, participant validation, RLS policies, and a unique daily-credit constraint.
+- Added workout calculation tests and a mock browser fixture for non-destructive UI testing.
+- Bumped the offline app-shell cache for all new pages and assets.
+
 ## Version 1.03
 
 - Replaced player win text with responsive bars scaled against the current leader.

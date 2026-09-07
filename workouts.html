@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Workout Tracker - Eshelman Dashboard</title>
+    <meta name="theme-color" content="#263238">
+    <link rel="manifest" href="manifest.webmanifest">
+    <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="workouts.css">
+    <script src="workout-utils.js" defer></script>
+    <script src="workouts.js" defer></script>
+</head>
+
+<body>
+    <header>
+        <h1>Family Workout Tracker</h1>
+        <p>One active day at a time. Show up, check in, and keep the streak going.</p>
+    </header>
+
+    <main class="workout-main">
+        <div id="workout-status" class="tracker-status" role="status" aria-live="polite"></div>
+
+        <div id="workout-content" class="hidden">
+            <section class="workout-today" aria-labelledby="today-heading">
+                <div class="workout-identity">
+                    <span>Tracking as <strong id="workout-identity-name"></strong></span>
+                    <button id="change-workout-identity" type="button" class="text-button">Change</button>
+                </div>
+                <h2 id="today-heading">Today's activity</h2>
+                <button id="today-workout-button" type="button" class="today-workout-button"></button>
+                <p id="workout-feedback" class="workout-feedback" role="status" aria-live="polite"></p>
+            </section>
+
+            <div class="workout-overview">
+                <section aria-labelledby="standings-heading">
+                    <h2 id="standings-heading">Monthly Standings</h2>
+                    <div id="workout-standings"></div>
+                </section>
+
+                <section aria-labelledby="streaks-heading">
+                    <h2 id="streaks-heading">Current Streaks</h2>
+                    <div id="workout-streaks"></div>
+                </section>
+            </div>
+
+            <section class="calendar-section" aria-labelledby="calendar-heading">
+                <div class="calendar-toolbar">
+                    <button id="previous-month" type="button" class="secondary-button"
+                        aria-label="Show previous month">&larr;</button>
+                    <div>
+                        <h2 id="calendar-heading"></h2>
+                        <button id="show-current-month" type="button" class="text-button">Today</button>
+                    </div>
+                    <button id="next-month" type="button" class="secondary-button"
+                        aria-label="Show next month">&rarr;</button>
+                </div>
+
+                <div class="workout-legend" aria-label="Calendar key">
+                    <span><strong>E</strong> Evan</span>
+                    <span><strong>S</strong> Scarlet</span>
+                    <span><strong>M</strong> Mom</span>
+                </div>
+
+                <p class="calendar-help">Tap your own marker to correct today or an earlier date. Other family activity is read-only.</p>
+
+                <div class="calendar-weekdays" aria-hidden="true">
+                    <span>Sun</span>
+                    <span>Mon</span>
+                    <span>Tue</span>
+                    <span>Wed</span>
+                    <span>Thu</span>
+                    <span>Fri</span>
+                    <span>Sat</span>
+                </div>
+                <div id="workout-calendar" class="workout-calendar" aria-label="Workout calendar"></div>
+            </section>
+        </div>
+    </main>
+
+    <dialog id="workout-identity-dialog" aria-labelledby="workout-identity-title">
+        <form id="workout-identity-form">
+            <h2 id="workout-identity-title">Who are you?</h2>
+            <p>Your choice is remembered on this device. It is a convenience, not a login.</p>
+            <fieldset class="identity-options">
+                <legend>Workout participant</legend>
+                <label><input type="radio" name="identity" value="Evan" required> Evan</label>
+                <label><input type="radio" name="identity" value="Scarlet" required> Scarlet</label>
+                <label><input type="radio" name="identity" value="Mom" required> Mom</label>
+            </fieldset>
+            <div class="dialog-actions">
+                <button id="workout-identity-cancel" type="button" class="secondary-button">Cancel</button>
+                <button type="submit">Continue</button>
+            </div>
+        </form>
+    </dialog>
+
+    <dialog id="workout-date-dialog" class="workout-date-dialog" aria-labelledby="workout-date-title">
+        <div class="workout-date-dialog-content">
+            <h2 id="workout-date-title">Workout details</h2>
+            <ul id="workout-date-details" class="workout-date-details"></ul>
+            <button id="close-workout-date-dialog" type="button" class="workout-date-close">
+                Close
+            </button>
+        </div>
+    </dialog>
+
+    <nav class="bottom-nav" aria-label="Dashboard modules">
+        <a href="./index.html">
+            <span class="bottom-nav-icon" aria-hidden="true">&#127922;</span>
+            <span>Games</span>
+        </a>
+        <a href="./workouts.html" aria-current="page">
+            <span class="bottom-nav-icon" aria-hidden="true">&#10003;</span>
+            <span>Workouts</span>
+        </a>
+        <a href="./gift-cards.html">
+            <span class="bottom-nav-icon" aria-hidden="true">&#127873;</span>
+            <span>Gift Cards</span>
+        </a>
+    </nav>
+</body>
+
+</html>
