@@ -5,6 +5,7 @@ const WORKOUT_PARTICIPANTS = ["Evan", "Scarlet", "Mom"];
 const WORKOUT_SUPABASE_REST_URL = "https://hjftnsaabyntyliwgjie.supabase.co/rest/v1";
 const WORKOUT_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_WkyBjvODmxrICShiF_09qw_VNEg-ghY";
 const WORKOUT_RESULTS_TABLE = "workout_results";
+const WORKOUT_FETCH_PAGE_SIZE = 500;
 const workoutUtils = window.WorkoutTrackerUtils;
 
 const workoutElements = {
@@ -12,6 +13,10 @@ const workoutElements = {
     calendarHeading: document.querySelector("#calendar-heading"),
     changeIdentityButton: document.querySelector("#change-workout-identity"),
     content: document.querySelector("#workout-content"),
+    dateCloseButton: document.querySelector("#close-workout-date-dialog"),
+    dateDetails: document.querySelector("#workout-date-details"),
+    dateDialog: document.querySelector("#workout-date-dialog"),
+    dateDialogTitle: document.querySelector("#workout-date-title"),
     feedback: document.querySelector("#workout-feedback"),
     identityCancelButton: document.querySelector("#workout-identity-cancel"),
     identityDialog: document.querySelector("#workout-identity-dialog"),
@@ -291,6 +296,57 @@ function formatWorkoutDate(dateString) {
     }).format(parsed.date);
 }
 
+function formatWorkoutDateLong(dateString) {
+    const parsed = workoutUtils.parseDateOnly(dateString);
+
+    if (!parsed) {
+        return dateString;
+    }
+
+    return new Intl.DateTimeFormat("en-US", {
+        day: "numeric",
+        month: "long",
+        weekday: "long",
+        year: "numeric"
+    }).format(parsed.date);
+}
+
+function openWorkoutDateDetails(dateString) {
+    if (!workoutUtils.parseDateOnly(dateString)) {
+        return;
+    }
+
+    workoutElements.dateDialogTitle.textContent = formatWorkoutDateLong(dateString);
+    const detailRows = WORKOUT_PARTICIPANTS.map(function (person) {
+        const completed = workoutUtils.hasWorkoutForDate(workoutResults, person, dateString);
+
+        return createWorkoutElement("li", {
+            className: "workout-date-person " + (completed ? "is-complete" : "is-incomplete")
+        }, [
+            createWorkoutElement("strong", {
+                className: "workout-date-person-name",
+                text: person
+            }),
+            createWorkoutElement("span", { className: "workout-date-status" }, [
+                createWorkoutElement("span", {
+                    className: "workout-date-status-icon",
+                    text: completed ? "\u2713" : "\u25CB",
+                    attributes: { "aria-hidden": "true" }
+                }),
+                createWorkoutElement("span", {
+                    text: completed ? "Workout completed" : "No workout recorded"
+                })
+            ])
+        ]);
+    });
+
+    workoutElements.dateDetails.replaceChildren.apply(
+        workoutElements.dateDetails,
+        detailRows
+    );
+    workoutElements.dateDialog.showModal();
+}
+
 function formatWorkoutMonth(year, monthIndex) {
     return new Intl.DateTimeFormat("en-US", {
         month: "long",
@@ -415,7 +471,8 @@ function createParticipantMarker(person, dateString, isFuture) {
         }
     }, children);
     button.disabled = isFuture || workoutMutationInProgress;
-    button.addEventListener("click", function () {
+    button.addEventListener("click", function (event) {
+        event.stopPropagation();
         toggleWorkoutResult(dateString);
     });
     return button;
@@ -458,19 +515,32 @@ function renderWorkoutCalendar() {
                 return createParticipantMarker(person, dateString, isFuture);
             })
         );
-
-        calendarItems.push(createWorkoutElement("article", {
+        const dateButton = createWorkoutElement("button", {
+            className: "calendar-date calendar-date-button",
+            text: day,
+            attributes: {
+                "aria-label": "Show workout details for " + formatWorkoutDateLong(dateString),
+                type: "button"
+            }
+        });
+        const dayElement = createWorkoutElement("article", {
             className,
             attributes: {
-                "aria-label": formatWorkoutDate(dateString)
+                "aria-label": "Workout activity for " + formatWorkoutDateLong(dateString)
             }
         }, [
-            createWorkoutElement("span", {
-                className: "calendar-date",
-                text: day
-            }),
+            dateButton,
             participants
-        ]));
+        ]);
+
+        dayElement.addEventListener("click", function (event) {
+            if (event.target.closest(".participant-marker")) {
+                return;
+            }
+
+            openWorkoutDateDetails(dateString);
+        });
+        calendarItems.push(dayElement);
     }
 
     workoutElements.calendar.replaceChildren.apply(
@@ -629,6 +699,17 @@ workoutElements.identityDialog.addEventListener("close", function () {
     }
 });
 
+workoutElements.dateCloseButton.addEventListener("click", function () {
+    workoutElements.dateDialog.close();
+});
+
+workoutElements.dateDialog.addEventListener("keydown", function (event) {
+    if (event.key === "Escape") {
+        event.preventDefault();
+        workoutElements.dateDialog.close();
+    }
+});
+
 workoutElements.changeIdentityButton.addEventListener("click", function () {
     openWorkoutIdentityDialog(true);
 });
@@ -669,4 +750,3 @@ if ("serviceWorker" in navigator) {
         });
     });
 }
-const WORKOUT_FETCH_PAGE_SIZE = 500;

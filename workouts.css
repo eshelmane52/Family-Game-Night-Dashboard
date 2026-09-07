@@ -234,6 +234,7 @@
     border: 1px solid var(--border-soft);
     border-radius: 8px;
     background: #ffffff;
+    cursor: pointer;
 }
 
 .calendar-day.is-today {
@@ -256,6 +257,22 @@
     color: var(--text-main);
     font-size: 0.88rem;
     font-weight: bold;
+}
+
+.calendar-date-button {
+    width: 100%;
+    min-height: 32px;
+    padding: 3px;
+    border: 0;
+    border-radius: 6px;
+    background: transparent;
+    color: var(--text-main);
+    text-align: left;
+}
+
+.calendar-date-button:hover {
+    background: #e3f1e8;
+    color: #0e3c27;
 }
 
 .is-today .calendar-date::after {
@@ -344,6 +361,80 @@ dialog h2 {
     margin-bottom: 8px;
 }
 
+.workout-date-dialog {
+    width: min(92vw, 600px);
+}
+
+.workout-date-dialog[open] {
+    animation: workout-date-dialog-in 180ms ease-out;
+}
+
+.workout-date-dialog[open]::backdrop {
+    animation: workout-date-backdrop-in 180ms ease-out;
+}
+
+.workout-date-dialog-content {
+    padding: clamp(20px, 5vw, 32px);
+}
+
+.workout-date-dialog h2 {
+    margin: 0;
+    color: var(--text-main);
+    font-size: clamp(1.7rem, 6vw, 2.15rem);
+    line-height: 1.2;
+}
+
+.workout-date-details {
+    display: grid;
+    gap: 12px;
+    margin: 22px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.workout-date-person {
+    display: grid;
+    gap: 8px;
+    padding: 16px;
+    border: 2px solid #59656e;
+    border-radius: 12px;
+    background: #f3f5f4;
+    color: #263238;
+}
+
+.workout-date-person.is-complete {
+    border-color: #176b43;
+    background: #dff3e6;
+    color: #174f35;
+}
+
+.workout-date-person-name {
+    font-size: clamp(1.3rem, 4.5vw, 1.5rem);
+}
+
+.workout-date-status {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: clamp(1.125rem, 4.5vw, 1.25rem);
+    font-weight: bold;
+}
+
+.workout-date-status-icon {
+    flex: 0 0 auto;
+    font-size: 1.55em;
+    line-height: 1;
+}
+
+.workout-date-close {
+    width: 100%;
+    min-height: 56px;
+    margin-top: 22px;
+    background: #263238;
+    font-size: 1.15rem;
+    font-weight: bold;
+}
+
 .identity-options {
     display: grid;
     gap: 8px;
@@ -392,6 +483,28 @@ dialog h2 {
     100% {
         transform: scale(1);
         box-shadow: none;
+    }
+}
+
+@keyframes workout-date-dialog-in {
+    from {
+        opacity: 0;
+        transform: scale(0.9);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1);
+    }
+}
+
+@keyframes workout-date-backdrop-in {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
     }
 }
 
@@ -461,7 +574,9 @@ dialog h2 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .today-workout-button.just-completed {
+    .today-workout-button.just-completed,
+    .workout-date-dialog[open],
+    .workout-date-dialog[open]::backdrop {
         animation: none;
     }
 }

@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workout Tracker Browser Fixture</title>
     <base href="../">
-    <link rel="stylesheet" href="../styles.css?fixture=2">
-    <link rel="stylesheet" href="../workouts.css?fixture=2">
+    <link rel="stylesheet" href="../styles.css?fixture=3">
+    <link rel="stylesheet" href="../workouts.css?fixture=3">
     <script>
         (function () {
             function dateString(date) {
@@ -67,8 +67,8 @@
             };
         })();
     </script>
-    <script src="../workout-utils.js?fixture=2" defer></script>
-    <script src="../workouts.js?fixture=2" defer></script>
+    <script src="../workout-utils.js?fixture=3" defer></script>
+    <script src="../workouts.js?fixture=3" defer></script>
 </head>
 
 <body>
@@ -137,6 +137,16 @@
                 <button type="submit">Continue</button>
             </div>
         </form>
+    </dialog>
+
+    <dialog id="workout-date-dialog" class="workout-date-dialog" aria-labelledby="workout-date-title">
+        <div class="workout-date-dialog-content">
+            <h2 id="workout-date-title">Workout details</h2>
+            <ul id="workout-date-details" class="workout-date-details"></ul>
+            <button id="close-workout-date-dialog" type="button" class="workout-date-close">
+                Close
+            </button>
+        </div>
     </dialog>
 
     <nav class="bottom-nav" aria-label="Dashboard modules">

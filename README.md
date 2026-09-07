@@ -61,6 +61,8 @@ not authentication.
 Workout activity is stored in Supabase rather than browser storage. The main
 view includes a one-tap control for today, month-specific standings, current
 streaks that can cross month boundaries, and a responsive monthly calendar.
+Selecting a date or its date number opens a large-text summary with each
+participant's full name and workout status.
 Past dates can be corrected, future dates are disabled, and only a newly saved
 workout for today triggers the completion animation.
 

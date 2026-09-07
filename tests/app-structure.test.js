@@ -28,7 +28,7 @@ test("the game catalog preserves every existing game and adds categorized new ga
         ["Blank Space", "Word / Party Games"],
         ["Password", "Word / Party Games"],
         ["Scattergories", "Word / Party Games"],
-        ["Wheel of Fortune", "Word / Party Games"],
+        ["Wheel of Fortune", "Trivia / Game Show"],
         ["Pickleball", "Sports / Physical Games"]
     ]);
     const catalogMatches = appSource.matchAll(
@@ -69,6 +69,54 @@ test("all three modules share a three-link bottom navigation with one active ite
     });
 });
 
+test("workout startup configuration is initialized before any initial data load", function () {
+    const workoutSource = readProjectFile("workouts.js");
+    const configurationIndex = workoutSource.indexOf(
+        "const WORKOUT_FETCH_PAGE_SIZE = 500;"
+    );
+    const initialLoadIndexes = Array.from(
+        workoutSource.matchAll(/loadWorkoutResults\(\);/g),
+        function (match) {
+            return match.index;
+        }
+    );
+
+    assert.ok(configurationIndex >= 0, "fetch page size configuration exists");
+    assert.ok(initialLoadIndexes.length > 0, "startup invokes the workout loader");
+    initialLoadIndexes.forEach(function (loadIndex) {
+        assert.ok(
+            configurationIndex < loadIndex,
+            "fetch page size is initialized before loadWorkoutResults runs"
+        );
+    });
+});
+
+test("workout dates expose an accessible expanded-detail dialog", function () {
+    const workoutHtml = readProjectFile("workouts.html");
+    const workoutSource = readProjectFile("workouts.js");
+    const workoutStyles = readProjectFile("workouts.css");
+
+    assert.match(
+        workoutHtml,
+        /<dialog id="workout-date-dialog"[^>]*aria-labelledby="workout-date-title"/
+    );
+    assert.match(workoutHtml, /id="workout-date-details"/);
+    assert.match(workoutHtml, /id="close-workout-date-dialog"/);
+    assert.match(workoutSource, /"Show workout details for " \+ formatWorkoutDateLong/);
+    assert.match(workoutSource, /event\.target\.closest\("\.participant-marker"\)/);
+    assert.match(workoutSource, /event\.stopPropagation\(\)/);
+    assert.match(workoutSource, /event\.key === "Escape"/);
+    assert.match(workoutSource, /text: completed \? "Workout completed" : "No workout recorded"/);
+    assert.match(
+        workoutStyles,
+        /\.workout-date-dialog\[open\][\s\S]*animation: workout-date-dialog-in/
+    );
+    assert.match(
+        workoutStyles,
+        /@media \(prefers-reduced-motion: reduce\)[\s\S]*\.workout-date-dialog\[open\]/
+    );
+});
+
 test("the service worker caches every production module shell asset", function () {
     const serviceWorkerSource = readProjectFile("service-worker.js");
     const requiredAssets = [
@@ -92,6 +140,6 @@ test("the service worker caches every production module shell asset", function (
         );
     });
 
-    assert.match(serviceWorkerSource, /family-game-night-dashboard-v3\.00/);
+    assert.match(serviceWorkerSource, /family-game-night-dashboard-v3\.01/);
     assert.match(serviceWorkerSource, /endsWith\("\/workouts\.html"\)/);
 });

@@ -55,7 +55,7 @@ const DEFAULT_GAMES = [
     { name: "Blank Space", category: "Word / Party Games" },
     { name: "Password", category: "Word / Party Games" },
     { name: "Scattergories", category: "Word / Party Games" },
-    { name: "Wheel of Fortune", category: "Word / Party Games" },
+    { name: "Wheel of Fortune", category: "Trivia / Game Show" },
     { name: "Pickleball", category: "Sports / Physical Games" }
 ];
 

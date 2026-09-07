@@ -1,5 +1,13 @@
 # Change Log
 
+## 2026-09-06 - Workout Tracker Follow-up
+
+- Fixed the workout page's first-load initialization order so saved identities refresh normally.
+- Added an accessible, reduced-motion-aware date details dialog with full participant names and statuses.
+- Kept participant-marker editing separate from general date-cell detail viewing.
+- Moved Wheel of Fortune into the Trivia / Game Show category.
+- Bumped the offline app-shell cache for the refreshed workout assets.
+
 ## 2026-09-06 - Workout Tracker and Dashboard Navigation
 
 - Added a fixed, safe-area-aware bottom toolbar for Games, Workouts, and Gift Cards.
