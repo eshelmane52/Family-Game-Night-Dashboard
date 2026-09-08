@@ -1,4 +1,4 @@
-const CACHE_NAME = "family-game-night-dashboard-v3.03";
+const CACHE_NAME = "family-game-night-dashboard-v3.04";
 
 const APP_ASSETS = [
     "./",
