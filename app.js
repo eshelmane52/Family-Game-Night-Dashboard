@@ -57,7 +57,8 @@ const DEFAULT_GAMES = [
     { name: "Scattergories", category: "Word / Party Games" },
     { name: "Wheel of Fortune", category: "Trivia / Game Show" },
     { name: "Pickleball", category: "Sports / Physical Games" },
-    { name: "Wordle!", category: "Word / Party Games" }
+    { name: "Wordle!", category: "Word / Party Games" },
+    { name: "Supermallows!", category: "Card Games" }
 ];
 
 const DEFAULT_PLAYERS = [
