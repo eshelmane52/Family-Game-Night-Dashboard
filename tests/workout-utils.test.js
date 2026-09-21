@@ -111,20 +111,22 @@ test("monthly standings count unique dates only in the selected month", function
         result("Evan", "2026-09-01", "evan-duplicate"),
         result("Evan", "2026-09-02"),
         result("Scarlet", "2026-09-03"),
-        result("Mom", "2026-10-01")
+        result("Mom", "2026-10-01"),
+        result("Ryan", "2026-09-04")
     ];
 
     assert.deepEqual(
         workoutUtils.getMonthlyStandings(
             results,
-            ["Evan", "Scarlet", "Mom"],
+            ["Evan", "Scarlet", "Mom", "Ryan"],
             2026,
             8
         ),
         [
             { count: 2, person: "Evan", rank: 1 },
             { count: 1, person: "Scarlet", rank: 2 },
-            { count: 0, person: "Mom", rank: 3 }
+            { count: 1, person: "Ryan", rank: 2 },
+            { count: 0, person: "Mom", rank: 4 }
         ]
     );
 });
@@ -138,14 +140,15 @@ test("tied monthly totals share a rank and keep configured order", function () {
     assert.deepEqual(
         workoutUtils.getMonthlyStandings(
             results,
-            ["Evan", "Scarlet", "Mom"],
+            ["Evan", "Scarlet", "Mom", "Ryan"],
             2026,
             8
         ),
         [
             { count: 1, person: "Evan", rank: 1 },
             { count: 1, person: "Scarlet", rank: 1 },
-            { count: 0, person: "Mom", rank: 3 }
+            { count: 0, person: "Mom", rank: 3 },
+            { count: 0, person: "Ryan", rank: 3 }
         ]
     );
 });

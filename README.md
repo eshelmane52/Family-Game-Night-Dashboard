@@ -28,7 +28,7 @@ Completed:
 - Cross-device shared sync for add/delete/reset/import behavior
 - Fixed bottom navigation for Games, Workouts, and Gift Cards
 - Categorized game selector with grouped native options
-- Shared daily Workout Tracker for Evan, Scarlet, and Mom
+- Shared daily Workout Tracker for Evan, Scarlet, Mom, and Ryan
 - Workout calendar, monthly standings, and current streaks
 
 ## Tech stack
@@ -53,7 +53,7 @@ unchanged.
 ## Workout Tracker
 
 The `workouts.html` page records one date-only workout credit per participant
-per calendar day. Evan, Scarlet, and Mom can see everyone's activity, while the
+per calendar day. Evan, Scarlet, Mom, and Ryan can see everyone's activity, while the
 locally selected identity controls which person's dates are editable. The
 identity is remembered with `localStorage`; it is an honor-system convenience,
 not authentication.
@@ -62,10 +62,11 @@ Workout activity is stored in Supabase rather than browser storage. The main
 view includes a one-tap control for today, month-specific standings, current
 streaks that can cross month boundaries, and a responsive monthly calendar.
 Selecting a date or its date number opens a large-text summary with each
-participant's full name and workout status.
+participant's full name and workout status. The selected identity can record or
+remove their own workout directly from that summary.
 Past dates can be corrected, future dates are disabled, and only a newly saved
-workout for today triggers the completion animation and modest-volume
-completion sound.
+workout for today triggers the modest-volume completion sound. Successful popup
+completions use the same completion animation language as the main control.
 
 ### Workout Supabase setup
 
@@ -81,8 +82,11 @@ same Supabase project used by the other modules.
 5. Complete the cross-device tests before deployment.
 
 The schema stores `workout_date` as PostgreSQL `date`, permits only Evan,
-Scarlet, or Mom, prevents duplicate daily credit, and rejects future dates at
+Scarlet, Mom, or Ryan, prevents duplicate daily credit, and rejects future dates at
 both the policy and trigger layers.
+
+Existing installations must rerun `supabase/workout-tracker.sql` so the existing
+participant check constraint and anonymous insert policy are updated for Ryan.
 
 ## Gift Card Tracker
 

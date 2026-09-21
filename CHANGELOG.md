@@ -1,5 +1,14 @@
 # Change Log
 
+## 2026-09-20 - Ryan and Calendar Popup Completion
+
+- Added Ryan throughout workout identity, persistence, standings, streaks, history, and date details.
+- Let the selected identity record or remove their own workout from the date-details popup through the shared save path.
+- Kept other participants and future-date popup rows read-only, with duplicate protections unchanged.
+- Added a popup completion animation while preserving the successful-today-only completion sound behavior.
+- Updated the review-only Supabase participant constraint and insert policy migration.
+- Refreshed the four-person responsive fixture/tests and bumped the offline cache for the updated app and audio.
+
 ## 2026-09-07 - Workout Completion Sound
 
 - Added a preloaded, modest-volume sound to the existing successful-today workout celebration.

@@ -13,11 +13,15 @@ create table if not exists public.workout_results (
     id uuid primary key default gen_random_uuid(),
     workout_date date not null,
     person text not null
-        check (person in ('Evan', 'Scarlet', 'Mom')),
+        constraint workout_results_person_check check (person in ('Evan', 'Scarlet', 'Mom', 'Ryan')),
     created_at timestamptz not null default now(),
     constraint workout_results_one_credit_per_day
         unique (workout_date, person)
 );
+alter table public.workout_results drop constraint if exists workout_results_person_check;
+alter table public.workout_results add constraint workout_results_person_check
+    check (person in ('Evan', 'Scarlet', 'Mom', 'Ryan'));
+
 
 create index if not exists workout_results_month_standings_idx
     on public.workout_results (workout_date desc, person);
@@ -54,7 +58,7 @@ drop policy if exists "workout_results_anon_insert" on public.workout_results;
 create policy "workout_results_anon_insert"
 on public.workout_results for insert to anon
 with check (
-    person in ('Evan', 'Scarlet', 'Mom')
+    person in ('Evan', 'Scarlet', 'Mom', 'Ryan')
     and workout_date <= current_date
 );
 

@@ -1,13 +1,14 @@
 "use strict";
 
 const WORKOUT_IDENTITY_STORAGE_KEY = "workoutTrackerIdentity";
-const WORKOUT_PARTICIPANTS = ["Evan", "Scarlet", "Mom"];
+const WORKOUT_PARTICIPANTS = ["Evan", "Scarlet", "Mom", "Ryan"];
 const WORKOUT_SUPABASE_REST_URL = "https://hjftnsaabyntyliwgjie.supabase.co/rest/v1";
 const WORKOUT_SUPABASE_PUBLISHABLE_KEY = "sb_publishable_WkyBjvODmxrICShiF_09qw_VNEg-ghY";
 const WORKOUT_RESULTS_TABLE = "workout_results";
 const WORKOUT_FETCH_PAGE_SIZE = 500;
 const WORKOUT_COMPLETE_AUDIO_SOURCE = "assets/audio/workout-complete.mp3";
 const WORKOUT_COMPLETE_AUDIO_VOLUME = 0.35;
+const WORKOUT_TOGGLE_GUARD_MS = 1000;
 const workoutUtils = window.WorkoutTrackerUtils;
 
 const workoutElements = {
@@ -38,6 +39,9 @@ let selectedWorkoutIdentity = getSavedWorkoutIdentity();
 let workoutResults = [];
 let workoutLoadToken = 0;
 let workoutMutationInProgress = false;
+let openWorkoutDateString = "";
+let lastWorkoutMutationKey = "";
+let lastWorkoutMutationAt = 0;
 const initialMonth = new Date();
 let displayedWorkoutYear = initialMonth.getFullYear();
 let displayedWorkoutMonth = initialMonth.getMonth();
@@ -330,18 +334,18 @@ function formatWorkoutDateLong(dateString) {
     }).format(parsed.date);
 }
 
-function openWorkoutDateDetails(dateString) {
+function renderWorkoutDateDetails(dateString) {
     if (!workoutUtils.parseDateOnly(dateString)) {
         return;
     }
 
+    const today = workoutUtils.getTodayDateString();
+    const isFuture = workoutUtils.isFutureDate(dateString, today);
     workoutElements.dateDialogTitle.textContent = formatWorkoutDateLong(dateString);
     const detailRows = WORKOUT_PARTICIPANTS.map(function (person) {
         const completed = workoutUtils.hasWorkoutForDate(workoutResults, person, dateString);
-
-        return createWorkoutElement("li", {
-            className: "workout-date-person " + (completed ? "is-complete" : "is-incomplete")
-        }, [
+        const canEdit = person === selectedWorkoutIdentity && !isFuture;
+        const cardChildren = [
             createWorkoutElement("strong", {
                 className: "workout-date-person-name",
                 text: person
@@ -356,13 +360,53 @@ function openWorkoutDateDetails(dateString) {
                     text: completed ? "Workout completed" : "No workout recorded"
                 })
             ])
-        ]);
+        ];
+        let card;
+
+        if (canEdit) {
+            card = createWorkoutElement("button", {
+                className: "workout-date-person " + (completed ? "is-complete" : "is-incomplete")
+                    + " is-actionable",
+                attributes: {
+                    "aria-label": (completed ? "Remove " : "Record ") + person
+                        + "'s workout for " + formatWorkoutDate(dateString),
+                    "data-workout-person": person,
+                    type: "button"
+                }
+            }, cardChildren);
+            card.disabled = workoutMutationInProgress;
+            card.addEventListener("click", function () {
+                toggleWorkoutResult(dateString, {
+                    completeOnly: !completed,
+                    completionOrigin: "date-dialog"
+                });
+            });
+        } else {
+            card = createWorkoutElement("div", {
+                className: "workout-date-person " + (completed ? "is-complete" : "is-incomplete")
+                    + (person === selectedWorkoutIdentity ? " is-current-person" : ""),
+                attributes: {
+                    "data-workout-person": person
+                }
+            }, cardChildren);
+        }
+
+        return createWorkoutElement("li", { className: "workout-date-item" }, [card]);
     });
 
     workoutElements.dateDetails.replaceChildren.apply(
         workoutElements.dateDetails,
         detailRows
     );
+}
+
+function openWorkoutDateDetails(dateString) {
+    if (!workoutUtils.parseDateOnly(dateString)) {
+        return;
+    }
+
+    openWorkoutDateString = dateString;
+    renderWorkoutDateDetails(dateString);
     workoutElements.dateDialog.showModal();
 }
 
@@ -575,6 +619,10 @@ function renderWorkoutTracker() {
     renderWorkoutStandings();
     renderWorkoutStreaks();
     renderWorkoutCalendar();
+
+    if (workoutElements.dateDialog.open && openWorkoutDateString) {
+        renderWorkoutDateDetails(openWorkoutDateString);
+    }
 }
 
 function animateTodayWorkoutCompletion() {
@@ -584,6 +632,30 @@ function animateTodayWorkoutCompletion() {
 
     window.setTimeout(function () {
         workoutElements.todayButton.classList.remove("just-completed");
+    }, 650);
+}
+
+function animateWorkoutDateCompletion(person, dateString) {
+    if (!workoutElements.dateDialog.open || openWorkoutDateString !== dateString) {
+        return;
+    }
+
+    const completedCard = Array.from(
+        workoutElements.dateDetails.querySelectorAll("[data-workout-person]")
+    ).find(function (card) {
+        return card.getAttribute("data-workout-person") === person;
+    });
+
+    if (!completedCard) {
+        return;
+    }
+
+    completedCard.classList.remove("just-completed");
+    void completedCard.offsetWidth;
+    completedCard.classList.add("just-completed");
+
+    window.setTimeout(function () {
+        completedCard.classList.remove("just-completed");
     }, 650);
 }
 
@@ -617,7 +689,9 @@ function playWorkoutCompletionSound() {
     }
 }
 
-async function toggleWorkoutResult(dateString) {
+async function toggleWorkoutResult(dateString, options) {
+    const settings = options || {};
+
     if (workoutMutationInProgress || !selectedWorkoutIdentity) {
         return;
     }
@@ -630,7 +704,19 @@ async function toggleWorkoutResult(dateString) {
     }
 
     const identityAtStart = selectedWorkoutIdentity;
+    const completionKey = identityAtStart + "|" + dateString;
     const existingResult = findWorkoutResult(identityAtStart, dateString);
+
+    if (settings.completeOnly && existingResult) {
+        return;
+    }
+    if (
+        completionKey === lastWorkoutMutationKey
+        && Date.now() - lastWorkoutMutationAt < WORKOUT_TOGGLE_GUARD_MS
+    ) {
+        return;
+    }
+
     let newWorkoutSaved = false;
     workoutMutationInProgress = true;
     setWorkoutFeedback("");
@@ -643,6 +729,8 @@ async function toggleWorkoutResult(dateString) {
                 return result.id !== existingResult.id;
             });
             setWorkoutFeedback("Workout removed for " + formatWorkoutDate(dateString) + ".");
+            lastWorkoutMutationKey = completionKey;
+            lastWorkoutMutationAt = Date.now();
         } else {
             const savedResult = await insertWorkoutResult(identityAtStart, dateString);
 
@@ -652,6 +740,8 @@ async function toggleWorkoutResult(dateString) {
                 workoutResults = await fetchWorkoutResults();
             }
             newWorkoutSaved = true;
+            lastWorkoutMutationKey = completionKey;
+            lastWorkoutMutationAt = Date.now();
 
             if (selectedWorkoutIdentity !== identityAtStart) {
                 await loadWorkoutResults();
@@ -694,9 +784,15 @@ async function toggleWorkoutResult(dateString) {
         if (!workoutElements.content.classList.contains("hidden")) {
             renderWorkoutTracker();
 
-            if (newWorkoutSaved && dateString === today) {
-                animateTodayWorkoutCompletion();
-                playWorkoutCompletionSound();
+            if (newWorkoutSaved) {
+                if (settings.completionOrigin === "date-dialog") {
+                    animateWorkoutDateCompletion(identityAtStart, dateString);
+                }
+
+                if (dateString === today) {
+                    animateTodayWorkoutCompletion();
+                    playWorkoutCompletionSound();
+                }
             }
         }
     }
@@ -758,6 +854,10 @@ workoutElements.dateDialog.addEventListener("keydown", function (event) {
         event.preventDefault();
         workoutElements.dateDialog.close();
     }
+});
+
+workoutElements.dateDialog.addEventListener("close", function () {
+    openWorkoutDateString = "";
 });
 
 workoutElements.changeIdentityButton.addEventListener("click", function () {

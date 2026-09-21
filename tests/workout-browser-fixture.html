@@ -6,8 +6,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Workout Tracker Browser Fixture</title>
     <base href="../">
-    <link rel="stylesheet" href="../styles.css?fixture=3">
-    <link rel="stylesheet" href="../workouts.css?fixture=3">
+    <link rel="stylesheet" href="../styles.css?fixture=4">
+    <link rel="stylesheet" href="../workouts.css?fixture=4">
     <script>
         (function () {
             function dateString(date) {
@@ -24,6 +24,7 @@
 
             const fixtureParameters = new URLSearchParams(window.location.search);
             const audioMode = fixtureParameters.get("audio") || "";
+            const deleteMode = fixtureParameters.get("delete") || "";
             const getMode = fixtureParameters.get("get") || "";
             const postMode = fixtureParameters.get("post") || "";
             const todayMode = fixtureParameters.get("today") || "";
@@ -33,7 +34,8 @@
                 { id: "evan-1", workout_date: shiftedDate(0), person: "Evan", created_at: new Date().toISOString() },
                 { id: "scarlet-2", workout_date: shiftedDate(-1), person: "Scarlet", created_at: new Date().toISOString() },
                 { id: "scarlet-1", workout_date: shiftedDate(0), person: "Scarlet", created_at: new Date().toISOString() },
-                { id: "mom-1", workout_date: shiftedDate(-1), person: "Mom", created_at: new Date().toISOString() }
+                { id: "mom-1", workout_date: shiftedDate(-1), person: "Mom", created_at: new Date().toISOString() },
+                { id: "ryan-1", workout_date: shiftedDate(-2), person: "Ryan", created_at: new Date().toISOString() }
             ];
             const fixtureRoot = document.documentElement;
             const fixtureState = {
@@ -42,6 +44,8 @@
                 audioSource: "",
                 deleteCalls: 0,
                 getCalls: 0,
+                lastPostDate: "",
+                lastPostPerson: "",
                 postCalls: 0
             };
             const NativeAudio = window.Audio;
@@ -59,6 +63,8 @@
             fixtureRoot.dataset.deleteCalls = "0";
             fixtureRoot.dataset.getCalls = "0";
             fixtureRoot.dataset.postCalls = "0";
+            fixtureRoot.dataset.lastPostDate = "";
+            fixtureRoot.dataset.lastPostPerson = "";
             window.Audio = function (source) {
                 const audio = new NativeAudio(source);
                 const nativePlay = audio.play.bind(audio);
@@ -99,7 +105,9 @@
             };
             window.Audio.prototype = NativeAudio.prototype;
 
-            localStorage.setItem("workoutTrackerIdentity", "Evan");
+            if (!localStorage.getItem("workoutTrackerIdentity")) {
+                localStorage.setItem("workoutTrackerIdentity", "Evan");
+            }
 
             window.fetch = async function (url, options) {
                 const settings = options || {};
@@ -107,8 +115,24 @@
                 if ((settings.method || "GET") === "POST") {
                     fixtureState.postCalls += 1;
                     fixtureRoot.dataset.postCalls = String(fixtureState.postCalls);
+                    const body = JSON.parse(settings.body);
+                    fixtureState.lastPostDate = body.workout_date;
+                    fixtureState.lastPostPerson = body.person;
+                    fixtureRoot.dataset.lastPostDate = body.workout_date;
+                    fixtureRoot.dataset.lastPostPerson = body.person;
 
                     if (postMode === "duplicate") {
+                        if (!mockRows.some(function (row) {
+                            return row.person === body.person && row.workout_date === body.workout_date;
+                        })) {
+                            mockRows.push({
+                                id: "existing-duplicate",
+                                workout_date: body.workout_date,
+                                person: body.person,
+                                created_at: new Date().toISOString()
+                            });
+                        }
+
                         return new Response(JSON.stringify({
                             code: "23505",
                             message: "Fixture duplicate workout."
@@ -128,7 +152,6 @@
                         });
                     }
 
-                    const body = JSON.parse(settings.body);
                     const row = {
                         id: "mock-" + Date.now(),
                         workout_date: body.workout_date,
@@ -145,6 +168,16 @@
                 if (settings.method === "DELETE") {
                     fixtureState.deleteCalls += 1;
                     fixtureRoot.dataset.deleteCalls = String(fixtureState.deleteCalls);
+
+                    if (deleteMode === "failure") {
+                        return new Response(JSON.stringify({
+                            code: "FIXTURE_FAILURE",
+                            message: "Fixture workout removal failed."
+                        }), {
+                            headers: { "Content-Type": "application/json" },
+                            status: 500
+                        });
+                    }
                     const idMatch = String(url).match(/[?&]id=eq\.([^&]+)/);
                     const id = idMatch ? decodeURIComponent(idMatch[1]) : "";
                     mockRows = mockRows.filter(function (row) {
@@ -173,8 +206,8 @@
             };
         })();
     </script>
-    <script src="../workout-utils.js?fixture=4" defer></script>
-    <script src="../workouts.js?fixture=4" defer></script>
+    <script src="../workout-utils.js?fixture=5" defer></script>
+    <script src="../workouts.js?fixture=8" defer></script>
 </head>
 
 <body>
@@ -218,6 +251,7 @@
                     <span><strong>E</strong> Evan</span>
                     <span><strong>S</strong> Scarlet</span>
                     <span><strong>M</strong> Mom</span>
+                    <span><strong>R</strong> Ryan</span>
                 </div>
                 <p class="calendar-help">Tap your own marker to correct today or an earlier date. Other family activity is read-only.</p>
                 <div class="calendar-weekdays" aria-hidden="true">
@@ -237,6 +271,7 @@
                 <label><input type="radio" name="identity" value="Evan" required> Evan</label>
                 <label><input type="radio" name="identity" value="Scarlet" required> Scarlet</label>
                 <label><input type="radio" name="identity" value="Mom" required> Mom</label>
+                <label><input type="radio" name="identity" value="Ryan" required> Ryan</label>
             </fieldset>
             <div class="dialog-actions">
                 <button id="workout-identity-cancel" type="button" class="secondary-button">Cancel</button>

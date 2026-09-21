@@ -107,6 +107,16 @@ test("workout dates expose an accessible expanded-detail dialog", function () {
     assert.match(workoutSource, /event\.stopPropagation\(\)/);
     assert.match(workoutSource, /event\.key === "Escape"/);
     assert.match(workoutSource, /text: completed \? "Workout completed" : "No workout recorded"/);
+    assert.match(workoutSource, /const canEdit = person === selectedWorkoutIdentity && !isFuture/);
+    assert.match(workoutSource, /completeOnly: !completed/);
+    assert.match(workoutSource, /completionOrigin: "date-dialog"/);
+    assert.match(workoutSource, /settings\.completeOnly && existingResult/);
+    assert.match(workoutSource, /Date\.now\(\) - lastWorkoutMutationAt < WORKOUT_TOGGLE_GUARD_MS/);
+    assert.match(workoutSource, /renderWorkoutDateDetails\(openWorkoutDateString\)/);
+    assert.match(workoutStyles, /button\.workout-date-person\.is-actionable/);
+    assert.match(workoutStyles, /\.workout-date-person\.just-completed/);
+    assert.match(workoutStyles, /@media \(max-height: 680px\)/);
+
     assert.match(
         workoutStyles,
         /\.workout-date-dialog\[open\][\s\S]*animation: workout-date-dialog-in/
@@ -130,7 +140,7 @@ test("workout completion audio is guarded by the successful today celebration", 
     assert.match(workoutSource, /audio\.volume = WORKOUT_COMPLETE_AUDIO_VOLUME/);
     assert.match(
         workoutSource,
-        /if \(newWorkoutSaved && dateString === today\) \{\s*animateTodayWorkoutCompletion\(\);\s*playWorkoutCompletionSound\(\);\s*\}/
+        /if \(newWorkoutSaved\) \{[\s\S]*if \(dateString === today\) \{\s*animateTodayWorkoutCompletion\(\);\s*playWorkoutCompletionSound\(\);\s*\}/
     );
     assert.match(
         workoutSource,
@@ -168,6 +178,32 @@ test("the service worker caches every production module shell asset", function (
         );
     });
 
-    assert.match(serviceWorkerSource, /family-game-night-dashboard-v3\.02/);
+    assert.match(serviceWorkerSource, /family-game-night-dashboard-v3\.07/);
     assert.match(serviceWorkerSource, /endsWith\("\/workouts\.html"\)/);
+});
+
+test("Ryan is configured across the workout UI, persistence rules, and browser fixture", function () {
+    const workoutHtml = readProjectFile("workouts.html");
+    const workoutSource = readProjectFile("workouts.js");
+    const workoutSchema = readProjectFile("supabase/workout-tracker.sql");
+    const workoutFixture = readProjectFile("tests/workout-browser-fixture.html");
+
+    assert.match(
+        workoutSource,
+        /const WORKOUT_PARTICIPANTS = \["Evan", "Scarlet", "Mom", "Ryan"\]/
+    );
+    assert.match(workoutHtml, /name="identity" value="Ryan" required> Ryan/);
+    assert.match(workoutHtml, /<strong>R<\/strong> Ryan/);
+    assert.ok(
+        (workoutSchema.match(/'Evan', 'Scarlet', 'Mom', 'Ryan'/g) || []).length >= 3,
+        "Ryan is allowed by the table constraint, migration, and insert policy"
+    );
+    assert.match(
+        workoutSchema,
+        /drop constraint if exists workout_results_person_check/
+    );
+    assert.match(workoutFixture, /person: "Ryan"/);
+    assert.match(workoutFixture, /name="identity" value="Ryan" required> Ryan/);
+    assert.match(workoutFixture, /dataset\.lastPostDate = body\.workout_date/);
+    assert.match(workoutFixture, /dataset\.lastPostPerson = body\.person/);
 });
