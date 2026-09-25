@@ -1,5 +1,11 @@
 # Change Log
 
+## 2026-09-22 - App Icon and Game Selector Refresh
+
+- Replaced the install icons with the refreshed game-night artwork and retained the prior versions as `_old` backups.
+- Removed category groups from the game selector and restored a single alphabetized game list.
+- Bumped the offline cache so installed copies receive the updated selector and icons.
+
 ## 2026-09-20 - Ryan and Calendar Popup Completion
 
 - Added Ryan throughout workout identity, persistence, standings, streaks, history, and date details.

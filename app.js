@@ -29,36 +29,27 @@ const SUPABASE_REST_URL = "https://hjftnsaabyntyliwgjie.supabase.co/rest/v1";
 const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_WkyBjvODmxrICShiF_09qw_VNEg-ghY";
 const SUPABASE_GAME_RESULTS_TABLE_URL = `${SUPABASE_REST_URL}/game_results`;
 
-const GAME_CATEGORY_ORDER = [
-    "Board Games",
-    "Card Games",
-    "Dice Games",
-    "Trivia / Game Show",
-    "Word / Party Games",
-    "Sports / Physical Games"
-];
-
 const DEFAULT_GAMES = [
-    { name: "Monopoly Board Game", category: "Board Games" },
-    { name: "Sorry!", category: "Board Games" },
-    { name: "Contract Whist (Heck No)", category: "Card Games" },
-    { name: "Crazy Eights", category: "Card Games" },
-    { name: "German Whist", category: "Card Games" },
-    { name: "Gin Rummy", category: "Card Games" },
-    { name: "Go Fish", category: "Card Games" },
-    { name: "Hearts", category: "Card Games" },
-    { name: "Jik Jak", category: "Card Games" },
-    { name: "Monopoly Card Game", category: "Card Games" },
-    { name: "Old Maid", category: "Card Games" },
-    { name: "Farkle", category: "Dice Games" },
-    { name: "Jeopardy", category: "Trivia / Game Show" },
-    { name: "Blank Space", category: "Word / Party Games" },
-    { name: "Password", category: "Word / Party Games" },
-    { name: "Scattergories", category: "Word / Party Games" },
-    { name: "Wheel of Fortune", category: "Trivia / Game Show" },
-    { name: "Pickleball", category: "Sports / Physical Games" },
-    { name: "Wordle!", category: "Word / Party Games" },
-    { name: "Supermallows!", category: "Card Games" }
+    "Blank Space",
+    "Contract Whist (Heck No)",
+    "Crazy Eights",
+    "Farkle",
+    "German Whist",
+    "Gin Rummy",
+    "Go Fish",
+    "Hearts",
+    "Jeopardy",
+    "Jik Jak",
+    "Monopoly Board Game",
+    "Monopoly Card Game",
+    "Old Maid",
+    "Password",
+    "Pickleball",
+    "Scattergories",
+    "Sorry!",
+    "Supermallows!",
+    "Wheel of Fortune",
+    "Wordle!"
 ];
 
 const DEFAULT_PLAYERS = [
@@ -188,26 +179,15 @@ function renderGameOptions() {
     placeholderOption.textContent = "Select Game";
     gameNameSelect.replaceChildren(placeholderOption);
 
-    GAME_CATEGORY_ORDER.forEach(function (category) {
-        const gamesInCategory = DEFAULT_GAMES.filter(function (game) {
-            return game.category === category;
-        });
+    const alphabetizedGames = DEFAULT_GAMES.slice().sort(function (firstGame, secondGame) {
+        return firstGame.localeCompare(secondGame, undefined, { sensitivity: "base" });
+    });
 
-        if (gamesInCategory.length === 0) {
-            return;
-        }
-
-        const optionGroup = document.createElement("optgroup");
-        optionGroup.label = category;
-
-        gamesInCategory.forEach(function (game) {
-            const option = document.createElement("option");
-            option.value = game.name;
-            option.textContent = game.name;
-            optionGroup.appendChild(option);
-        });
-
-        gameNameSelect.appendChild(optionGroup);
+    alphabetizedGames.forEach(function (game) {
+        const option = document.createElement("option");
+        option.value = game;
+        option.textContent = game;
+        gameNameSelect.appendChild(option);
     });
 
     const customOption = document.createElement("option");

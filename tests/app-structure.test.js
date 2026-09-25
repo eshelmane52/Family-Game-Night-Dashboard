@@ -9,39 +9,92 @@ function readProjectFile(relativePath) {
     return fs.readFileSync(path.join(projectRoot, relativePath), "utf8");
 }
 
-test("the game catalog preserves every existing game and adds categorized new games", function () {
-    const appSource = readProjectFile("app.js");
-    const expectedGames = new Map([
-        ["Monopoly Board Game", "Board Games"],
-        ["Sorry!", "Board Games"],
-        ["Contract Whist (Heck No)", "Card Games"],
-        ["Crazy Eights", "Card Games"],
-        ["German Whist", "Card Games"],
-        ["Gin Rummy", "Card Games"],
-        ["Go Fish", "Card Games"],
-        ["Hearts", "Card Games"],
-        ["Jik Jak", "Card Games"],
-        ["Monopoly Card Game", "Card Games"],
-        ["Old Maid", "Card Games"],
-        ["Farkle", "Dice Games"],
-        ["Jeopardy", "Trivia / Game Show"],
-        ["Blank Space", "Word / Party Games"],
-        ["Password", "Word / Party Games"],
-        ["Scattergories", "Word / Party Games"],
-        ["Wheel of Fortune", "Trivia / Game Show"],
-        ["Pickleball", "Sports / Physical Games"]
-    ]);
-    const catalogMatches = appSource.matchAll(
-        /\{ name: "([^"]+)", category: "([^"]+)" \}/g
+function readPngDimensions(relativePath) {
+    const png = fs.readFileSync(path.join(projectRoot, relativePath));
+
+    assert.equal(
+        png.subarray(0, 8).toString("hex"),
+        "89504e470d0a1a0a",
+        relativePath + " is a valid PNG"
     );
-    const actualGames = new Map(
-        Array.from(catalogMatches, function (match) {
-            return [match[1], match[2]];
-        })
+
+    return {
+        width: png.readUInt32BE(16),
+        height: png.readUInt32BE(20)
+    };
+}
+
+test("the game catalog is alphabetized without category groups", function () {
+    const appSource = readProjectFile("app.js");
+    const expectedGames = [
+        "Blank Space",
+        "Contract Whist (Heck No)",
+        "Crazy Eights",
+        "Farkle",
+        "German Whist",
+        "Gin Rummy",
+        "Go Fish",
+        "Hearts",
+        "Jeopardy",
+        "Jik Jak",
+        "Monopoly Board Game",
+        "Monopoly Card Game",
+        "Old Maid",
+        "Password",
+        "Pickleball",
+        "Scattergories",
+        "Sorry!",
+        "Supermallows!",
+        "Wheel of Fortune",
+        "Wordle!"
+    ];
+    const catalogMatch = appSource.match(
+        /const DEFAULT_GAMES = \[([\s\S]*?)\];/
+    );
+
+    assert.ok(catalogMatch, "the game catalog is defined");
+
+    const actualGames = Array.from(
+        catalogMatch[1].matchAll(/"([^"]+)"/g),
+        function (match) {
+            return match[1];
+        }
     );
 
     assert.deepEqual(actualGames, expectedGames);
-    assert.match(appSource, /document\.createElement\("optgroup"\)/);
+    assert.deepEqual(
+        actualGames,
+        actualGames.slice().sort(function (firstGame, secondGame) {
+            return firstGame.localeCompare(secondGame, undefined, { sensitivity: "base" });
+        })
+    );
+    assert.doesNotMatch(appSource, /document\.createElement\("optgroup"\)/);
+    assert.match(appSource, /alphabetizedGames\.forEach/);
+});
+
+test("the active install icons have the exact expected pixel dimensions", function () {
+    const manifest = JSON.parse(readProjectFile("manifest.webmanifest"));
+    const manifestIcons = new Map(
+        manifest.icons.map(function (icon) {
+            return [icon.src, icon.sizes];
+        })
+    );
+    const expectedIcons = [
+        { path: "icons/icon-192.png", size: 192 },
+        { path: "icons/icon-512.png", size: 512 },
+        { path: "icons/apple-touch-icon.png", size: 180 }
+    ];
+
+    expectedIcons.forEach(function (icon) {
+        assert.deepEqual(
+            readPngDimensions(icon.path),
+            { width: icon.size, height: icon.size }
+        );
+    });
+
+    assert.equal(manifestIcons.get("icons/icon-192.png"), "192x192");
+    assert.equal(manifestIcons.get("icons/icon-512.png"), "512x512");
+    assert.match(readProjectFile("index.html"), /href="icons\/apple-touch-icon\.png"/);
 });
 
 test("all three modules share a three-link bottom navigation with one active item", function () {
@@ -178,7 +231,7 @@ test("the service worker caches every production module shell asset", function (
         );
     });
 
-    assert.match(serviceWorkerSource, /family-game-night-dashboard-v3\.07/);
+    assert.match(serviceWorkerSource, /family-game-night-dashboard-v3\.08/);
     assert.match(serviceWorkerSource, /endsWith\("\/workouts\.html"\)/);
 });
 

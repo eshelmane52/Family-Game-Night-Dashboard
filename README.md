@@ -27,7 +27,7 @@ Completed:
 - Supabase shared backend persistence
 - Cross-device shared sync for add/delete/reset/import behavior
 - Fixed bottom navigation for Games, Workouts, and Gift Cards
-- Categorized game selector with grouped native options
+- Alphabetized game selector without category grouping
 - Shared daily Workout Tracker for Evan, Scarlet, Mom, and Ryan
 - Workout calendar, monthly standings, and current streaks
 
